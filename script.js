@@ -765,4 +765,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Initialize booking summary on page load
     updateBookingSummary();
+
+    // Close modal when clicking outside
+    document.addEventListener('click', function(event) {
+        const gcashModal = document.getElementById('gcashModal');
+        const successModal = document.getElementById('successModal');
+        
+        if (event.target === gcashModal) {
+            closeGCashModal();
+        }
+        
+        if (event.target === successModal) {
+            closeSuccessModal();
+        }
+    });
 });
