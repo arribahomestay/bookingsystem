@@ -99,6 +99,25 @@ body {
     box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
 }
 
+.admin-icon {
+    background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+    color: white !important;
+    padding: 10px 15px;
+    border-radius: 25px;
+    transition: all 0.3s ease;
+    margin-left: 10px;
+}
+
+.admin-icon:hover {
+    background: linear-gradient(135deg, #7f8c8d, #6c7b7d);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(149, 165, 166, 0.4);
+}
+
+.admin-icon i {
+    font-size: 1.1rem;
+}
+
 .nav-toggle {
     display: none;
     flex-direction: column;
