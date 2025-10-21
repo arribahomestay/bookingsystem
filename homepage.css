@@ -118,6 +118,7 @@ body {
     min-height: 100vh;
     display: flex;
     align-items: center;
+    justify-content: center;
     background: linear-gradient(135deg, rgba(102, 126, 234, 0.8) 0%, rgba(118, 75, 162, 0.8) 100%), 
                 url('hero.png') center/cover no-repeat;
     background-attachment: fixed;
@@ -141,10 +142,10 @@ body {
 .hero-content {
     flex: 1;
     max-width: 600px;
-    margin-right: 50px;
     position: relative;
     z-index: 2;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    text-align: center;
 }
 
 .hero h1 {
@@ -164,6 +165,7 @@ body {
     display: flex;
     gap: 20px;
     flex-wrap: wrap;
+    justify-content: center;
 }
 
 .btn-primary, .btn-secondary {
@@ -199,12 +201,7 @@ body {
 }
 
 .hero-image {
-    flex: 1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-    z-index: 2;
+    display: none; /* Hide since we're using background image */
 }
 
 /* Remove placeholder styling since we're using background image */
