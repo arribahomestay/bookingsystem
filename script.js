@@ -417,7 +417,6 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Cloudinary URL:', cloudinaryUrl);
             
             const bookingData = {
-                id: generateBookingId(),
                 customerName: document.getElementById('customerName').value.trim(),
                 phoneNumber: document.getElementById('phoneNumber').value.trim(),
                 email: document.getElementById('email').value.trim(),
@@ -434,10 +433,10 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Booking data:', bookingData);
 
             // Simulate API call
-            await submitBooking(bookingData);
+            const result = await submitBooking(bookingData);
             
             console.log('Booking submitted successfully');
-            showSuccessModal(bookingData.id);
+            showSuccessModal(result.id);
             resetForm();
 
         } catch (error) {
@@ -564,7 +563,9 @@ document.addEventListener('DOMContentLoaded', function() {
             });
 
             console.log('Booking submitted successfully to Firebase with ID:', docRef.id);
-            return { id: docRef.id, ...bookingData };
+            // Use Firebase document ID instead of custom ID
+            const updatedBookingData = { ...bookingData, id: docRef.id };
+            return updatedBookingData;
         } catch (error) {
             console.error('Firebase submission failed, falling back to localStorage:', error);
             
@@ -594,6 +595,30 @@ document.addEventListener('DOMContentLoaded', function() {
     // Close modal
     window.closeModal = function() {
         successModal.style.display = 'none';
+    }
+
+    // Copy Booking ID Function
+    window.copyBookingId = function(bookingId) {
+        if (!bookingId || bookingId.trim() === '') {
+            alert('No booking ID available to copy');
+            return;
+        }
+        
+        navigator.clipboard.writeText(bookingId).then(() => {
+            // Show success message
+            const button = event.target;
+            const originalText = button.innerHTML;
+            button.innerHTML = '<i class="fas fa-check"></i> Copied!';
+            button.style.background = '#27ae60';
+            
+            setTimeout(() => {
+                button.innerHTML = originalText;
+                button.style.background = '#3498db';
+            }, 2000);
+        }).catch(err => {
+            console.error('Failed to copy booking ID:', err);
+            alert('Failed to copy booking ID. Please copy manually: ' + bookingId);
+        });
     }
 
     // GCash Payment Functions

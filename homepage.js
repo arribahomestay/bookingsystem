@@ -226,3 +226,196 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+
+// Booking Status Check Function
+window.checkBookingStatus = async function() {
+    const bookingId = document.getElementById('bookingIdInput').value.trim();
+    const resultDiv = document.getElementById('bookingStatusResult');
+    
+    if (!bookingId) {
+        showBookingResult('error', 'Please enter a booking ID');
+        return;
+    }
+    
+    // Show loading state
+    resultDiv.innerHTML = '<div class="loading">Checking booking status...</div>';
+    resultDiv.style.display = 'block';
+    resultDiv.className = 'status-result';
+    
+    try {
+        // Import Firebase functions
+        const { initializeApp } = await import('https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js');
+        const { getFirestore, collection, query, where, getDocs } = await import('https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js');
+        
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCgr15-PAggrpDfczz_KS3dXgENdnIWK4w",
+            authDomain: "booking-47007.firebaseapp.com",
+            projectId: "booking-47007",
+            storageBucket: "booking-47007.firebasestorage.app",
+            messagingSenderId: "941466249313",
+            appId: "1:941466249313:web:55719f70aaadae8d252220",
+            measurementId: "G-B9RG31V3CM"
+        };
+        
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        
+        // Query Firebase for booking using document ID
+        const bookingsRef = collection(db, 'bookings');
+        
+        // Try to get the document directly by ID
+        let bookingDoc;
+        try {
+            const { doc, getDoc } = await import('https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js');
+            const bookingRef = doc(db, 'bookings', bookingId);
+            const bookingSnapshot = await getDoc(bookingRef);
+            
+            if (!bookingSnapshot.exists()) {
+                showBookingResult('error', 'Booking not found. Please check your booking ID and try again.');
+                return;
+            }
+            
+            bookingDoc = bookingSnapshot;
+        } catch (error) {
+            console.error('Error fetching booking:', error);
+            showBookingResult('error', 'Error checking booking status. Please try again later.');
+            return;
+        }
+        
+        // Format booking data
+        const bookingData = bookingDoc.data();
+        const booking = {
+            id: bookingDoc.id, // Use Firebase document ID consistently
+            customerName: bookingData.customer_name || bookingData.customerName,
+            phoneNumber: bookingData.phone_number || bookingData.phoneNumber,
+            email: bookingData.email,
+            checkIn: bookingData.check_in || bookingData.checkIn,
+            checkOut: bookingData.check_out || bookingData.checkOut,
+            guests: bookingData.guests,
+            extraBeds: bookingData.extra_beds || bookingData.extraBeds,
+            totalAmount: bookingData.total_amount || bookingData.totalAmount,
+            status: bookingData.status,
+            createdAt: bookingData.createdAt ? bookingData.createdAt.toDate().toISOString() : new Date().toISOString()
+        };
+        
+        // Calculate days and nights
+        const checkInDate = new Date(booking.checkIn);
+        const checkOutDate = new Date(booking.checkOut);
+        const days = Math.ceil((checkOutDate - checkInDate) / (1000 * 3600 * 24));
+        const nights = days - 1;
+        
+        // Display booking information
+        const statusClass = booking.status === 'confirmed' ? 'success' : 
+                          booking.status === 'pending' ? 'pending' : 'error';
+        
+        resultDiv.innerHTML = `
+            <div class="booking-info">
+                <h3>Booking Found!</h3>
+                <div class="info-row">
+                    <span class="info-label">Booking ID:</span>
+                    <span class="info-value">${booking.id}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Customer Name:</span>
+                    <span class="info-value">${booking.customerName}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Email:</span>
+                    <span class="info-value">${booking.email}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Phone:</span>
+                    <span class="info-value">${booking.phoneNumber}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Check-in Date:</span>
+                    <span class="info-value">${formatDate(booking.checkIn)}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Check-out Date:</span>
+                    <span class="info-value">${formatDate(booking.checkOut)}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Duration:</span>
+                    <span class="info-value">${days} days, ${nights} nights</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Number of Guests:</span>
+                    <span class="info-value">${booking.guests}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Extra Beds:</span>
+                    <span class="info-value">${booking.extraBeds}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Total Amount:</span>
+                    <span class="info-value">₱${booking.totalAmount.toLocaleString()}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Status:</span>
+                    <span class="info-value">
+                        <span class="status-badge ${booking.status}">${booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}</span>
+                    </span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Created At:</span>
+                    <span class="info-value">${formatDateTime(booking.createdAt)}</span>
+                </div>
+            </div>
+        `;
+        
+        resultDiv.className = `status-result ${statusClass}`;
+        
+    } catch (error) {
+        console.error('Error checking booking status:', error);
+        showBookingResult('error', 'Error checking booking status. Please try again later.');
+    }
+}
+
+function showBookingResult(type, message) {
+    const resultDiv = document.getElementById('bookingStatusResult');
+    resultDiv.innerHTML = `<div class="booking-info"><h3>${message}</h3></div>`;
+    resultDiv.className = `status-result ${type}`;
+    resultDiv.style.display = 'block';
+}
+
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+}
+
+function formatDateTime(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+}
+
+// Copy Booking ID Function
+window.copyBookingId = function(bookingId) {
+    navigator.clipboard.writeText(bookingId).then(() => {
+        // Show success message
+        const button = event.target;
+        const originalText = button.textContent;
+        button.textContent = 'Copied!';
+        button.style.background = '#27ae60';
+        
+        setTimeout(() => {
+            button.textContent = originalText;
+            button.style.background = '#3498db';
+        }, 2000);
+    }).catch(err => {
+        console.error('Failed to copy booking ID:', err);
+        alert('Failed to copy booking ID. Please copy manually: ' + bookingId);
+    });
+}

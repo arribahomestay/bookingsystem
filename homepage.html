@@ -52,35 +52,16 @@
     <!-- Find Section -->
     <section id="find" class="find-section">
         <div class="container">
-            <h2>Find Your Perfect Stay</h2>
-            <div class="find-grid">
-                <div class="find-card">
-                    <div class="card-icon">
-                        <i class="fas fa-calendar-alt"></i>
-                    </div>
-                    <h3>Easy Booking</h3>
-                    <p>Simple and secure online booking system with real-time availability</p>
+            <h2>Check Your Booking Status</h2>
+            <div class="booking-status-container">
+                <div class="search-box">
+                    <input type="text" id="bookingIdInput" placeholder="Enter your Booking ID (e.g., nQyWOm7O9sEFCjCuuZka)" maxlength="20">
+                    <button onclick="checkBookingStatus()" class="search-btn">
+                        <i class="fas fa-search"></i> Check Status
+                    </button>
                 </div>
-                <div class="find-card">
-                    <div class="card-icon">
-                        <i class="fas fa-bed"></i>
-                    </div>
-                    <h3>Comfortable Rooms</h3>
-                    <p>Spacious rooms with modern amenities and extra bed options</p>
-                </div>
-                <div class="find-card">
-                    <div class="card-icon">
-                        <i class="fas fa-credit-card"></i>
-                    </div>
-                    <h3>GCash Payment</h3>
-                    <p>Convenient GCash payment with secure receipt upload</p>
-                </div>
-                <div class="find-card">
-                    <div class="card-icon">
-                        <i class="fas fa-headset"></i>
-                    </div>
-                    <h3>24/7 Support</h3>
-                    <p>Round-the-clock customer support for all your needs</p>
+                <div id="bookingStatusResult" class="status-result" style="display: none;">
+                    <!-- Status result will be displayed here -->
                 </div>
             </div>
         </div>

@@ -149,7 +149,7 @@ async function loadInitialData() {
         bookingsSnapshot.forEach((doc) => {
             const data = doc.data();
             bookings.push({
-                id: doc.id, // Use Firebase document ID
+                id: doc.id, // Use Firebase document ID consistently
                 customerName: data.customerName,
                 phoneNumber: data.phoneNumber,
                 email: data.email,
@@ -1707,7 +1707,7 @@ async function updateBookingStatus(bookingId, status) {
     console.log(`Updating booking ${bookingId} to status: ${status}`);
     
     try {
-        // Update in Firebase
+        // Update in Firebase using the booking ID (which is now the Firebase document ID)
         const bookingRef = doc(db, 'bookings', bookingId);
         await updateDoc(bookingRef, {
             status: status,

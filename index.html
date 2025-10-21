@@ -302,7 +302,11 @@
                 <p>Your booking has been submitted successfully! We will contact you soon to confirm your reservation.</p>
                 <div class="booking-id">
                     <strong>Booking ID:</strong> <span id="bookingId"></span>
+                    <button onclick="copyBookingId(document.getElementById('bookingId').textContent)" class="copy-booking-id">
+                        <i class="fas fa-copy"></i> Copy ID
+                    </button>
                 </div>
+                <p class="booking-note">Save this Booking ID to check your booking status later!</p>
             </div>
             <div class="modal-footer">
                 <button onclick="closeModal()" class="btn-primary">Close</button>
