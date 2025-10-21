@@ -233,6 +233,35 @@
             100% { transform: rotate(360deg); }
         }
 
+        .back-to-home-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #6c757d;
+            color: white;
+            text-decoration: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .back-to-home-btn:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+            box-shadow: 0 3px 10px rgba(108, 117, 125, 0.3);
+            color: white;
+            text-decoration: none;
+        }
+
+        .back-to-home-btn i {
+            font-size: 0.9rem;
+        }
+
 
         @media (max-width: 480px) {
             .login-container {
@@ -262,6 +291,12 @@
 
         <div class="login-form">
             <h2>Sign In</h2>
+            
+            <!-- Back to Home Button -->
+            <a href="homepage.html" class="back-to-home-btn">
+                <i class="fas fa-arrow-left"></i>
+                Back to Home
+            </a>
             
             <div class="error-message" id="errorMessage"></div>
             <div class="success-message" id="successMessage"></div>
