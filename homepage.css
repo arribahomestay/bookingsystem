@@ -40,10 +40,23 @@ body {
     height: 70px;
 }
 
+.nav-logo {
+    display: flex;
+    align-items: center;
+}
+
 .nav-logo h2 {
     color: #2c3e50;
     font-size: 1.5rem;
     font-weight: 700;
+    margin-left: 10px;
+    margin: 0;
+}
+
+.nav-logo-img {
+    height: 40px;
+    width: auto;
+    object-fit: contain;
 }
 
 .nav-logo i {

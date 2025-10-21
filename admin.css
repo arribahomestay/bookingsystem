@@ -71,10 +71,23 @@ body {
     color: #3498db;
 }
 
+.logo {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
 .logo h2 {
     font-size: 1.4rem;
     font-weight: 700;
     margin: 0;
+    margin-left: 10px;
+}
+
+.sidebar-logo-img {
+    height: 35px;
+    width: auto;
+    object-fit: contain;
 }
 
 .sidebar-header p {
