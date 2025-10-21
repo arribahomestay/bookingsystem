@@ -19,7 +19,7 @@
             <div class="nav-menu" id="navMenu">
                 <a href="#home" class="nav-link active">HOME</a>
                 <a href="#find" class="nav-link">FIND</a>
-                <a href="#explore" class="nav-link">EXPLORE</a>
+                <a href="#review" class="nav-link">REVIEW</a>
                 <a href="#about" class="nav-link">ABOUT US</a>
                 <a href="index.html" class="nav-link booking-btn">BOOK NOW</a>
                 <a href="admin-login.html" class="nav-link admin-icon" title="Admin Login">
@@ -41,7 +41,7 @@
             <p>Experience comfort, tranquility, and unforgettable memories in our beautiful homestay</p>
             <div class="hero-buttons">
                 <a href="index.html" class="btn-primary">Book Your Stay</a>
-                <a href="#explore" class="btn-secondary">Explore More</a>
+                <a href="#review" class="btn-secondary">Explore More</a>
             </div>
         </div>
         <div class="hero-image">
@@ -67,39 +67,74 @@
         </div>
     </section>
 
-    <!-- Explore Section -->
-    <section id="explore" class="explore-section">
+    <!-- Review Section -->
+    <section id="review" class="review-section">
         <div class="container">
-            <h2>Explore Our Features</h2>
-            <div class="explore-content">
-                <div class="explore-text">
-                    <h3>Why Choose Arriba Homestay?</h3>
-                    <ul class="feature-list">
-                        <li><i class="fas fa-check"></i> Affordable rates starting at ₱3,300 per night</li>
-                        <li><i class="fas fa-check"></i> Extra bed options for additional guests</li>
-                        <li><i class="fas fa-check"></i> Real-time availability calendar</li>
-                        <li><i class="fas fa-check"></i> Secure GCash payment system</li>
-                        <li><i class="fas fa-check"></i> Mobile-friendly booking experience</li>
-                        <li><i class="fas fa-check"></i> Professional admin management</li>
-                    </ul>
-                    <div class="pricing-info">
-                        <h4>Pricing</h4>
-                        <div class="price-item">
-                            <span class="price-label">Per Night:</span>
-                            <span class="price-value">₱3,300</span>
-                        </div>
-                        <div class="price-item">
-                            <span class="price-label">Extra Bed:</span>
-                            <span class="price-value">₱300</span>
-                        </div>
-                        <div class="price-item">
-                            <span class="price-label">Min. Deposit:</span>
-                            <span class="price-value">₱3,000</span>
+            <h2>Customer Reviews</h2>
+            <p class="section-subtitle">Share your experience with Arriba Homestay</p>
+            
+            <!-- Review Form -->
+            <div class="review-form-container">
+                <h3>Write a Review</h3>
+                <form id="reviewForm" class="review-form">
+                    <div class="form-group">
+                        <label for="customerName">Your Name *</label>
+                        <input type="text" id="customerName" name="customerName" required placeholder="Enter your full name">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="reviewText">Your Review *</label>
+                        <textarea id="reviewText" name="reviewText" required placeholder="Tell us about your experience at Arriba Homestay..." rows="5"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="rating">Rating *</label>
+                        <div class="rating-input">
+                            <input type="radio" id="star5" name="rating" value="5">
+                            <label for="star5"><i class="fas fa-star"></i></label>
+                            <input type="radio" id="star4" name="rating" value="4">
+                            <label for="star4"><i class="fas fa-star"></i></label>
+                            <input type="radio" id="star3" name="rating" value="3">
+                            <label for="star3"><i class="fas fa-star"></i></label>
+                            <input type="radio" id="star2" name="rating" value="2">
+                            <label for="star2"><i class="fas fa-star"></i></label>
+                            <input type="radio" id="star1" name="rating" value="1">
+                            <label for="star1"><i class="fas fa-star"></i></label>
                         </div>
                     </div>
-                </div>
-                <div class="explore-image">
-                    <!-- Gallery images would go here -->
+                    
+                    <div class="form-group">
+                        <label for="reviewImages">Upload Photos</label>
+                        <input type="file" id="reviewImages" name="reviewImages" multiple accept="image/*">
+                        <small>Upload up to 5 photos of your stay</small>
+                        <div id="imagePreview" class="image-preview"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="reviewVideos">Upload Videos</label>
+                        <input type="file" id="reviewVideos" name="reviewVideos" multiple accept="video/*">
+                        <small>Upload videos to share your experience (max 2 videos, 50MB each)</small>
+                        <div id="videoPreview" class="video-preview"></div>
+                    </div>
+                    
+                    <button type="submit" class="submit-review-btn">
+                        <i class="fas fa-paper-plane"></i> Submit Review
+                    </button>
+                    
+                    <div id="submitMessage" class="submit-message"></div>
+                </form>
+            </div>
+            
+            <!-- Approved Reviews Display -->
+            <div class="reviews-display">
+                <h3>What Our Guests Say</h3>
+                <div id="approvedReviews" class="reviews-grid">
+                    <!-- Approved reviews will be loaded dynamically here -->
+                    <div class="no-reviews-message">
+                        <i class="fas fa-star"></i>
+                        <h4>Be the First to Share Your Experience!</h4>
+                        <p>No reviews yet. Share your experience with Arriba Homestay and help other guests discover our amazing services.</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -150,7 +185,7 @@
                     <ul>
                         <li><a href="#home">Home</a></li>
                         <li><a href="#find">Find</a></li>
-                        <li><a href="#explore">Explore</a></li>
+                        <li><a href="#review">Review</a></li>
                         <li><a href="#about">About Us</a></li>
                     </ul>
                 </div>

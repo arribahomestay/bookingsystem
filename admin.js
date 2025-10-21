@@ -573,6 +573,9 @@ function showSection(section) {
         case 'calendar':
             loadCalendar();
             break;
+        case 'reviews':
+            loadReviews();
+            break;
     }
 }
 
@@ -2162,4 +2165,466 @@ function updateMobileClickHandlers() {
 // Initialize the admin dashboard
 document.addEventListener('DOMContentLoaded', function() {
     loadInitialData();
+    setupRealTimeReviewListeners();
+    
+    // Load reviews initially if we're on the reviews page
+    if (window.location.hash === '#reviews') {
+        setTimeout(() => {
+            loadReviews();
+        }, 500); // Small delay to ensure Firebase is initialized
+    }
 });
+
+// Listen for hash changes to load reviews when navigating to reviews tab
+window.addEventListener('hashchange', function() {
+    if (window.location.hash === '#reviews') {
+        setTimeout(() => {
+            loadReviews();
+        }, 100);
+    }
+});
+
+// Set up real-time listeners for reviews
+function setupRealTimeReviewListeners() {
+    if (!db) {
+        console.log('Firebase not available for real-time listeners');
+        return;
+    }
+    
+    try {
+        // Set up real-time listener for reviews
+        const reviewsRef = collection(db, 'reviews');
+        const reviewsQuery = query(reviewsRef); // Simplified query without ordering
+        
+        // Listen for real-time changes
+        const unsubscribeReviews = onSnapshot(reviewsQuery, (snapshot) => {
+            console.log('Reviews updated in real-time');
+            
+            // Only refresh reviews if we're currently on the reviews section
+            const reviewsSection = document.getElementById('reviewsContent');
+            if (reviewsSection && reviewsSection.classList.contains('active')) {
+                loadReviews();
+            }
+        }, (error) => {
+            console.error('Error setting up real-time reviews listener:', error);
+        });
+        
+        // Store the unsubscribe function for cleanup
+        window.unsubscribeReviews = unsubscribeReviews;
+        
+    } catch (error) {
+        console.error('Error setting up real-time review listeners:', error);
+    }
+}
+
+// ==================== REVIEW MANAGEMENT FUNCTIONS ====================
+
+// Load all reviews
+async function loadReviews() {
+    try {
+        console.log('Loading reviews...');
+        
+        const reviewsRef = collection(db, 'reviews');
+        const q = query(reviewsRef); // Simplified query without ordering
+        const querySnapshot = await getDocs(q);
+        
+        const reviews = [];
+        querySnapshot.forEach((doc) => {
+            reviews.push({ id: doc.id, ...doc.data() });
+        });
+        
+        // Sort by submittedAt date (client-side sorting)
+        reviews.sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
+        
+        console.log('Reviews loaded:', reviews.length);
+        displayReviews(reviews);
+        
+    } catch (error) {
+        console.error('Error loading reviews:', error);
+        showNotification('Error loading reviews', 'error');
+    }
+}
+
+// Display reviews in the table
+function displayReviews(reviews) {
+    const tableBody = document.getElementById('reviewsTableBody');
+    
+    if (reviews.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #666;">No reviews found</td></tr>';
+        return;
+    }
+    
+    tableBody.innerHTML = reviews.map(review => {
+        const stars = Array(5).fill().map((_, i) => 
+            i < review.rating ? '<i class="fas fa-star" style="color: #f39c12;"></i>' : '<i class="far fa-star" style="color: #ddd;"></i>'
+        ).join('');
+        
+        const date = new Date(review.submittedAt).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        });
+        
+        // Count only valid media files
+        const validImages = review.images ? review.images.filter(img => img && img !== '' && img !== null && img !== undefined) : [];
+        const validVideos = review.videos ? review.videos.filter(vid => vid && vid !== '' && vid !== null && vid !== undefined) : [];
+        const mediaCount = validImages.length + validVideos.length;
+        const mediaText = mediaCount > 0 ? `${mediaCount} file${mediaCount > 1 ? 's' : ''}` : 'None';
+        
+        const statusClass = review.status === 'approved' ? 'status-approved' : 
+                           review.status === 'rejected' ? 'status-rejected' : 'status-pending';
+        
+        const statusText = review.status.charAt(0).toUpperCase() + review.status.slice(1);
+        
+        return `
+            <tr class="review-row" onclick="viewReviewDetails('${review.id}')" style="cursor: pointer;">
+                <td>
+                    <div class="customer-info">
+                        <strong>${review.customerName}</strong>
+                        <small class="review-id">ID: ${review.reviewId || review.id}</small>
+                    </div>
+                </td>
+                <td><div class="rating-display">${stars}</div></td>
+                <td class="review-preview">${review.reviewText.length > 100 ? review.reviewText.substring(0, 100) + '...' : review.reviewText}</td>
+                <td>${mediaText}</td>
+                <td>${date}</td>
+                <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                <td class="action-column" onclick="event.stopPropagation();">
+                    <button onclick="viewReviewDetails('${review.id}')" class="btn-action btn-view" title="View Details">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    ${review.status === 'pending' ? `
+                        <button onclick="approveReview('${review.id}')" class="btn-action btn-approve" title="Approve">
+                            <i class="fas fa-check"></i>
+                        </button>
+                        <button onclick="rejectReview('${review.id}')" class="btn-action btn-reject" title="Reject">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    ` : ''}
+                    ${review.status === 'approved' ? `
+                        <button onclick="deleteReview('${review.id}')" class="btn-action btn-delete" title="Delete Active Review">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    ` : ''}
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+// View review details
+async function viewReviewDetails(reviewId) {
+    try {
+        const reviewDoc = doc(db, 'reviews', reviewId);
+        const { getDoc } = await import('https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js');
+        const reviewSnapshot = await getDoc(reviewDoc);
+        
+        if (!reviewSnapshot.exists()) {
+            showNotification('Review not found', 'error');
+            return;
+        }
+        
+        const review = reviewSnapshot.data();
+        
+        const stars = Array(5).fill().map((_, i) => 
+            i < review.rating ? '<i class="fas fa-star" style="color: #f39c12;"></i>' : '<i class="far fa-star" style="color: #ddd;"></i>'
+        ).join('');
+        
+        const date = new Date(review.submittedAt).toLocaleString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+        
+        let mediaHtml = '';
+        
+        // Debug: Log the review data to see what we have
+        console.log('Review data for modal:', review);
+        console.log('Review images:', review.images);
+        console.log('Review videos:', review.videos);
+        
+        // Show images section if images exist
+        if (review.images && review.images.length > 0) {
+            const validImages = review.images.filter(img => img && img !== '' && img !== null && img !== undefined);
+            if (validImages.length > 0) {
+                mediaHtml += '<div class="review-media-section"><h4>Images (' + validImages.length + '):</h4><div class="media-grid">';
+                validImages.forEach((img, index) => {
+                    mediaHtml += `<div class="media-item-container">
+                        <img src="${img}" alt="Review image ${index + 1}" class="review-media-item" onclick="openMediaModal('${img}', 'image')" onerror="console.error('Failed to load image:', '${img}'); this.style.display='none'">
+                        <div class="media-item-info">Image ${index + 1}</div>
+                    </div>`;
+                });
+                mediaHtml += '</div></div>';
+            } else {
+                mediaHtml += '<div class="review-media-section"><h4>Images:</h4><p class="no-media">No valid images found</p></div>';
+            }
+        } else {
+            mediaHtml += '<div class="review-media-section"><h4>Images:</h4><p class="no-media">No images uploaded</p></div>';
+        }
+        
+        // Show videos section if videos exist
+        if (review.videos && review.videos.length > 0) {
+            const validVideos = review.videos.filter(vid => vid && vid !== '' && vid !== null && vid !== undefined);
+            if (validVideos.length > 0) {
+                mediaHtml += '<div class="review-media-section"><h4>Videos (' + validVideos.length + '):</h4><div class="media-grid">';
+                validVideos.forEach((vid, index) => {
+                    mediaHtml += `<div class="media-item-container">
+                        <video src="${vid}" class="review-media-item" controls onclick="openMediaModal('${vid}', 'video')" onerror="console.error('Failed to load video:', '${vid}'); this.style.display='none'">
+                            <source src="${vid}" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                        <div class="media-item-info">Video ${index + 1}</div>
+                    </div>`;
+                });
+                mediaHtml += '</div></div>';
+            } else {
+                mediaHtml += '<div class="review-media-section"><h4>Videos:</h4><p class="no-media">No valid videos found</p></div>';
+            }
+        } else {
+            mediaHtml += '<div class="review-media-section"><h4>Videos:</h4><p class="no-media">No videos uploaded</p></div>';
+        }
+        
+        const statusClass = review.status === 'approved' ? 'status-approved' : 
+                           review.status === 'rejected' ? 'status-rejected' : 'status-pending';
+        
+        const statusText = review.status.charAt(0).toUpperCase() + review.status.slice(1);
+        
+        document.getElementById('reviewDetailsContent').innerHTML = `
+            <div class="review-details">
+                <div class="review-header">
+                    <h4>${review.customerName}</h4>
+                    <div class="review-meta">
+                        <div class="rating-display">${stars}</div>
+                        <span class="review-date">${date}</span>
+                        <span class="status-badge ${statusClass}">${statusText}</span>
+                    </div>
+                    <div class="review-id-info">
+                        <strong>Review ID:</strong> ${review.reviewId || review.id}
+                    </div>
+                </div>
+                <div class="review-content">
+                    <p>${review.reviewText}</p>
+                </div>
+                ${mediaHtml}
+            </div>
+        `;
+        
+        // Show/hide action buttons based on status
+        const approveBtn = document.getElementById('approveReviewBtn');
+        const rejectBtn = document.getElementById('rejectReviewBtn');
+        
+        if (review.status === 'pending') {
+            approveBtn.style.display = 'inline-block';
+            rejectBtn.style.display = 'inline-block';
+            approveBtn.onclick = () => approveReviewFromModal(reviewId);
+            rejectBtn.onclick = () => rejectReviewFromModal(reviewId);
+        } else {
+            approveBtn.style.display = 'none';
+            rejectBtn.style.display = 'none';
+        }
+        
+        document.getElementById('reviewDetailsModal').style.display = 'block';
+        
+    } catch (error) {
+        console.error('Error loading review details:', error);
+        showNotification('Error loading review details', 'error');
+    }
+}
+
+// Approve review
+async function approveReview(reviewId) {
+    if (!confirm('Are you sure you want to approve this review? It will be visible to all customers.')) {
+        return;
+    }
+    
+    try {
+        const reviewDoc = doc(db, 'reviews', reviewId);
+        await updateDoc(reviewDoc, {
+            status: 'approved',
+            approvedAt: new Date().toISOString()
+        });
+        
+        showNotification('Review approved successfully', 'success');
+        loadReviews(); // Refresh the reviews list
+        
+    } catch (error) {
+        console.error('Error approving review:', error);
+        showNotification('Error approving review', 'error');
+    }
+}
+
+// Reject review
+async function rejectReview(reviewId) {
+    if (!confirm('Are you sure you want to reject this review? It will not be visible to customers.')) {
+        return;
+    }
+    
+    try {
+        const reviewDoc = doc(db, 'reviews', reviewId);
+        await updateDoc(reviewDoc, {
+            status: 'rejected',
+            rejectedAt: new Date().toISOString()
+        });
+        
+        showNotification('Review rejected successfully', 'success');
+        loadReviews(); // Refresh the reviews list
+        
+    } catch (error) {
+        console.error('Error rejecting review:', error);
+        showNotification('Error rejecting review', 'error');
+    }
+}
+
+// Approve review from modal
+async function approveReviewFromModal(reviewId) {
+    await approveReview(reviewId);
+    closeReviewDetailsModal();
+}
+
+// Reject review from modal
+async function rejectReviewFromModal(reviewId) {
+    await rejectReview(reviewId);
+    closeReviewDetailsModal();
+}
+
+// Close review details modal
+function closeReviewDetailsModal() {
+    document.getElementById('reviewDetailsModal').style.display = 'none';
+}
+
+// Apply review filters
+function applyReviewFilters() {
+    // This would implement filtering logic
+    // For now, just reload all reviews
+    loadReviews();
+}
+
+// Clear review filters
+function clearReviewFilters() {
+    document.getElementById('reviewStatusFilter').value = '';
+    document.getElementById('reviewRatingFilter').value = '';
+    document.getElementById('reviewDateFrom').value = '';
+    document.getElementById('reviewDateTo').value = '';
+    loadReviews();
+}
+
+// Refresh reviews
+function refreshReviews() {
+    loadReviews();
+    showNotification('Reviews refreshed', 'success');
+}
+
+// Show only active (approved) reviews
+function showActiveReviews() {
+    const reviewsRef = collection(db, 'reviews');
+    const activeQuery = query(reviewsRef, where('status', '==', 'approved'));
+    
+    getDocs(activeQuery).then((querySnapshot) => {
+        const activeReviews = [];
+        querySnapshot.forEach((doc) => {
+            activeReviews.push({ id: doc.id, ...doc.data() });
+        });
+        
+        // Sort by submittedAt date (client-side sorting)
+        activeReviews.sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
+        
+        console.log('Active reviews loaded:', activeReviews.length);
+        displayReviews(activeReviews);
+        
+        // Update filter dropdown to show active only
+        document.getElementById('reviewStatusFilter').value = 'approved';
+        
+        showNotification(`Showing ${activeReviews.length} active reviews`, 'success');
+        
+    }).catch((error) => {
+        console.error('Error loading active reviews:', error);
+        showNotification('Error loading active reviews', 'error');
+    });
+}
+
+// Delete review (for active reviews)
+async function deleteReview(reviewId) {
+    if (!confirm('Are you sure you want to delete this active review? This action cannot be undone and the review will be permanently removed from the website.')) {
+        return;
+    }
+    
+    try {
+        const reviewDoc = doc(db, 'reviews', reviewId);
+        await updateDoc(reviewDoc, {
+            status: 'deleted',
+            deletedAt: new Date().toISOString()
+        });
+        
+        showNotification('Review deleted successfully', 'success');
+        loadReviews(); // Refresh the reviews list
+        
+    } catch (error) {
+        console.error('Error deleting review:', error);
+        showNotification('Error deleting review', 'error');
+    }
+}
+
+// Open media modal (for viewing images/videos in full size)
+function openMediaModal(src, type) {
+    // Create modal if it doesn't exist
+    let modal = document.getElementById('mediaModal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'mediaModal';
+        modal.className = 'modal';
+        modal.innerHTML = `
+            <span class="close-modal" onclick="closeMediaModal()">&times;</span>
+            <div class="modal-content" style="background: transparent; padding: 0; max-width: 90vw; max-height: 90vh;">
+                <img id="modalImage" style="display: none; max-width: 100%; max-height: 90vh; object-fit: contain;">
+                <video id="modalVideo" style="display: none; max-width: 100%; max-height: 90vh;" controls>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        
+        // Add click outside to close
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                closeMediaModal();
+            }
+        });
+        
+        // Add escape key to close
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && modal.style.display === 'block') {
+                closeMediaModal();
+            }
+        });
+    }
+    
+    const modalImage = document.getElementById('modalImage');
+    const modalVideo = document.getElementById('modalVideo');
+    
+    if (type === 'image') {
+        modalImage.src = src;
+        modalImage.style.display = 'block';
+        modalVideo.style.display = 'none';
+    } else {
+        modalVideo.src = src;
+        modalVideo.style.display = 'block';
+        modalImage.style.display = 'none';
+    }
+    
+    modal.style.display = 'block';
+}
+
+// Close media modal
+function closeMediaModal() {
+    const modal = document.getElementById('mediaModal');
+    if (modal) {
+        modal.style.display = 'none';
+        
+        // Stop video playback
+        const modalVideo = document.getElementById('modalVideo');
+        if (modalVideo) {
+            modalVideo.pause();
+            modalVideo.currentTime = 0;
+        }
+    }
+}
