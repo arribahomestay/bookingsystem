@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - Arriba Homestay</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏠</text></svg>">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: url('hero.png') center/cover no-repeat;
+            background-attachment: fixed;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('hero.png') center/cover no-repeat;
+            filter: blur(3px);
+            z-index: -1;
+        }
+
+        .login-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .logo {
+            margin-bottom: 30px;
+        }
+
+        .logo h1 {
+            color: #2c3e50;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .logo i {
+            color: #3498db;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .logo p {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+
+        .login-form {
+            margin-bottom: 30px;
+        }
+
+        .login-form h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .google-btn {
+            background: #4285f4;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 15px 20px;
+            width: 100%;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .google-btn:hover {
+            background: #3367d6;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(66, 133, 244, 0.3);
+        }
+
+        .google-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .google-btn i {
+            font-size: 1.2rem;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 20px 0;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: #e0e0e0;
+        }
+
+        .divider span {
+            padding: 0 15px;
+        }
+
+        .manual-login {
+            display: none;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #2c3e50;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .login-btn {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 15px 20px;
+            width: 100%;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .login-btn:hover {
+            background: linear-gradient(135deg, #2980b9, #1f4e79);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .toggle-login {
+            background: none;
+            border: none;
+            color: #3498db;
+            cursor: pointer;
+            font-size: 0.9rem;
+            text-decoration: underline;
+            margin-top: 10px;
+        }
+
+        .toggle-login:hover {
+            color: #2980b9;
+        }
+
+        .error-message {
+            background: #e74c3c;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        .success-message {
+            background: #27ae60;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        .loading {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .loading i {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .admin-info {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            font-size: 0.9rem;
+            color: #2c3e50;
+        }
+
+        .admin-info h4 {
+            margin-bottom: 10px;
+            color: #3498db;
+        }
+
+        .admin-info ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .admin-info li {
+            margin-bottom: 5px;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .admin-info li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: #27ae60;
+            font-weight: bold;
+        }
+
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 30px 20px;
+                margin: 10px;
+            }
+
+            .logo h1 {
+                font-size: 1.5rem;
+            }
+
+            .google-btn,
+            .login-btn {
+                padding: 12px 15px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="logo">
+            <i class="fas fa-home"></i>
+            <h1>Arriba Homestay</h1>
+            <p>Admin Dashboard Login</p>
+        </div>
+
+        <div class="login-form">
+            <h2>Sign In</h2>
+            
+            <div class="error-message" id="errorMessage"></div>
+            <div class="success-message" id="successMessage"></div>
+
+            <!-- Google Sign-in Button -->
+            <button class="google-btn" id="googleSignInBtn" onclick="signInWithGoogle()">
+                <i class="fab fa-google"></i>
+                Sign in with Google
+            </button>
+
+            <div class="divider">
+                <span>or</span>
+            </div>
+
+            <!-- Manual Login Form -->
+            <div class="manual-login" id="manualLogin">
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" placeholder="Enter your email" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="Enter your password" required>
+                </div>
+                <button class="login-btn" onclick="signInWithEmail()">
+                    Sign In
+                </button>
+            </div>
+
+            <button class="toggle-login" onclick="toggleLoginMethod()">
+                Use email instead
+            </button>
+
+            <div class="loading" id="loading">
+                <i class="fas fa-spinner"></i>
+                <p>Signing in...</p>
+            </div>
+        </div>
+
+        <div class="admin-info">
+            <h4>Admin Access</h4>
+            <ul>
+                <li>View and manage bookings</li>
+                <li>Update booking status</li>
+                <li>Manage calendar availability</li>
+                <li>View customer receipts</li>
+                <li>Access booking records</li>
+            </ul>
+        </div>
+    </div>
+
+    <script type="module">
+        // Import Firebase modules
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js';
+        import { getAuth, signInWithPopup, GoogleAuthProvider, signInWithEmailAndPassword, signOut } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js';
+        
+        // Your Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCgr15-PAggrpDfczz_KS3dXgENdnIWK4w",
+            authDomain: "booking-47007.firebaseapp.com",
+            projectId: "booking-47007",
+            storageBucket: "booking-47007.firebasestorage.app",
+            messagingSenderId: "941466249313",
+            appId: "1:941466249313:web:55719f70aaadae8d252220",
+            measurementId: "G-B9RG31V3CM"
+        };
+        
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const provider = new GoogleAuthProvider();
+        
+        // Make Firebase Auth available globally
+        window.firebaseAuth = auth;
+        window.googleProvider = provider;
+        
+        // Admin email list (add your admin emails here)
+        const adminEmails = [
+            'rubibella939@gmail.com',
+            'seguidoej@gmail.com'
+        ];
+        
+        // Check if user is already signed in
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                if (adminEmails.includes(user.email)) {
+                    // User is admin, redirect to dashboard
+                    window.location.href = 'admin.html';
+                } else {
+                    // User is not admin, sign them out
+                    signOut(auth).then(() => {
+                        showError('Access denied. Only admin users can access this dashboard.');
+                    });
+                }
+            }
+        });
+        
+        // Google Sign-in function
+        window.signInWithGoogle = async function() {
+            try {
+                showLoading(true);
+                hideMessages();
+                
+                const result = await signInWithPopup(auth, provider);
+                const user = result.user;
+                
+                if (adminEmails.includes(user.email)) {
+                    showSuccess('Successfully signed in! Redirecting...');
+                    setTimeout(() => {
+                        window.location.href = 'admin.html';
+                    }, 1000);
+                } else {
+                    await signOut(auth);
+                    showError('Access denied. Only admin users can access this dashboard.');
+                }
+            } catch (error) {
+                console.error('Google sign-in error:', error);
+                showError('Sign-in failed: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        };
+        
+        // Email Sign-in function
+        window.signInWithEmail = async function() {
+            try {
+                const email = document.getElementById('email').value;
+                const password = document.getElementById('password').value;
+                
+                if (!email || !password) {
+                    showError('Please enter both email and password.');
+                    return;
+                }
+                
+                showLoading(true);
+                hideMessages();
+                
+                const result = await signInWithEmailAndPassword(auth, email, password);
+                const user = result.user;
+                
+                if (adminEmails.includes(user.email)) {
+                    showSuccess('Successfully signed in! Redirecting...');
+                    setTimeout(() => {
+                        window.location.href = 'admin.html';
+                    }, 1000);
+                } else {
+                    await signOut(auth);
+                    showError('Access denied. Only admin users can access this dashboard.');
+                }
+            } catch (error) {
+                console.error('Email sign-in error:', error);
+                showError('Sign-in failed: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        };
+        
+        // Toggle login method
+        window.toggleLoginMethod = function() {
+            const manualLogin = document.getElementById('manualLogin');
+            const toggleBtn = document.querySelector('.toggle-login');
+            
+            if (manualLogin.style.display === 'none' || manualLogin.style.display === '') {
+                manualLogin.style.display = 'block';
+                toggleBtn.textContent = 'Use Google instead';
+            } else {
+                manualLogin.style.display = 'none';
+                toggleBtn.textContent = 'Use email instead';
+            }
+        };
+        
+        // Utility functions
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+        
+        function showSuccess(message) {
+            const successDiv = document.getElementById('successMessage');
+            successDiv.textContent = message;
+            successDiv.style.display = 'block';
+        }
+        
+        function hideMessages() {
+            document.getElementById('errorMessage').style.display = 'none';
+            document.getElementById('successMessage').style.display = 'none';
+        }
+        
+        function showLoading(show) {
+            const loadingDiv = document.getElementById('loading');
+            const googleBtn = document.getElementById('googleSignInBtn');
+            
+            loadingDiv.style.display = show ? 'block' : 'none';
+            googleBtn.disabled = show;
+        }
+        
+        console.log('Admin login page loaded');
+    </script>
+</body>
+</html>

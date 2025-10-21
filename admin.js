@@ -2,7 +2,8 @@
 
 // Global Firebase variables
 let db;
-let collection, addDoc, getDocs, query, orderBy, where, updateDoc, doc;
+let collection, addDoc, getDocs, query, orderBy, where, updateDoc, doc, onSnapshot;
+let unsubscribeBookings; // For real-time listener
 
 // Wait for Firebase to be available
 const waitForFirebase = () => {
@@ -41,7 +42,7 @@ async function initializeFirebase() {
         console.log('Firebase DB obtained, importing functions...');
         
         // Import Firebase functions dynamically
-        const { collection: col, addDoc: add, getDocs: get, query: q, orderBy: order, where: w, updateDoc: update, doc: d } = await import('https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js');
+        const { collection: col, addDoc: add, getDocs: get, query: q, orderBy: order, where: w, updateDoc: update, doc: d, onSnapshot: onSnap } = await import('https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js');
         
         collection = col;
         addDoc = add;
@@ -51,6 +52,7 @@ async function initializeFirebase() {
         where = w;
         updateDoc = update;
         doc = d;
+        onSnapshot = onSnap;
         
         console.log('Firebase initialized successfully in admin!');
         console.log('Available functions:', {
@@ -205,12 +207,240 @@ async function loadInitialData() {
 
         // Update notification count
         updateNotificationCount();
+        
+        // Set up real-time notifications
+        setupRealtimeNotifications();
 
     } catch (error) {
         console.error('Failed to load data from Firebase:', error);
         showFirebaseError();
     }
 }
+
+// Set up real-time notifications for new bookings
+function setupRealtimeNotifications() {
+    try {
+        console.log('Setting up real-time notifications...');
+        
+        // Unsubscribe from previous listener if exists
+        if (unsubscribeBookings) {
+            unsubscribeBookings();
+        }
+        
+        // Set up real-time listener for bookings
+        const bookingsRef = collection(db, 'bookings');
+        const q = query(bookingsRef, orderBy('createdAt', 'desc'));
+        
+        unsubscribeBookings = onSnapshot(q, (snapshot) => {
+            console.log('Real-time update received:', snapshot.size, 'bookings');
+            
+            // Count new bookings (status: 'pending')
+            let newBookingsCount = 0;
+            let totalBookings = 0;
+            
+            snapshot.forEach((doc) => {
+                const data = doc.data();
+                totalBookings++;
+                
+                // Count pending bookings as new notifications
+                if (data.status === 'pending' || data.status === 'new') {
+                    newBookingsCount++;
+                }
+            });
+            
+            // Update notification count
+            updateNotificationCount(newBookingsCount);
+            
+            // Update bookings data
+            allBookings = snapshot.docs.map(doc => {
+                const data = doc.data();
+                return {
+                    id: doc.id,
+                    customerName: data.customer_name || data.customerName,
+                    phoneNumber: data.phone_number || data.phoneNumber,
+                    email: data.email,
+                    checkIn: data.check_in || data.checkIn,
+                    checkOut: data.check_out || data.checkOut,
+                    guests: data.guests,
+                    extraBeds: data.extra_beds || data.extraBeds,
+                    totalAmount: data.total_amount || data.totalAmount,
+                    status: data.status,
+                    receiptUrl: data.receipt_url || data.receiptUrl,
+                    createdAt: data.createdAt ? data.createdAt.toDate().toISOString() : new Date().toISOString()
+                };
+            });
+            
+            allRecords = [...allBookings];
+            
+            // Update filtered data
+            filteredBookings = allBookings.filter(booking => 
+                booking.status === 'pending' || booking.status === 'new'
+            );
+            filteredRecords = allBookings;
+            
+            // Refresh current view
+            if (currentSection === 'booking') {
+                displayBookings(filteredBookings);
+            } else if (currentSection === 'records') {
+                displayRecords(filteredRecords);
+                updatePagination();
+            }
+            
+            console.log(`Real-time update: ${newBookingsCount} new bookings, ${totalBookings} total`);
+            
+        }, (error) => {
+            console.error('Real-time listener error:', error);
+        });
+        
+        console.log('Real-time notifications set up successfully');
+        
+    } catch (error) {
+        console.error('Failed to set up real-time notifications:', error);
+    }
+}
+
+// Play notification sound for new bookings
+function playNotificationSound() {
+    try {
+        // Create a simple notification sound
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+        oscillator.frequency.setValueAtTime(600, audioContext.currentTime + 0.1);
+        
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+        
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.3);
+        
+        console.log('Notification sound played');
+    } catch (error) {
+        console.log('Could not play notification sound:', error);
+    }
+}
+
+// Toggle notification dropdown
+window.toggleNotificationDropdown = function() {
+    const dropdown = document.getElementById('notificationDropdown');
+    if (dropdown) {
+        dropdown.classList.toggle('show');
+        
+        // Update notification list when opened
+        if (dropdown.classList.contains('show')) {
+            updateNotificationList();
+        }
+    }
+};
+
+// Update notification list with pending bookings
+function updateNotificationList() {
+    const notificationList = document.getElementById('notificationList');
+    if (!notificationList) return;
+    
+    const pendingBookings = allBookings.filter(booking => 
+        booking.status === 'pending' || booking.status === 'new'
+    );
+    
+    if (pendingBookings.length === 0) {
+        notificationList.innerHTML = '<div class="no-notifications">No new bookings</div>';
+        return;
+    }
+    
+    // Sort by creation date (newest first)
+    pendingBookings.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    
+    notificationList.innerHTML = pendingBookings.map(booking => {
+        const timeAgo = getTimeAgo(booking.createdAt);
+        const checkInDate = new Date(booking.checkIn).toLocaleDateString();
+        const checkOutDate = new Date(booking.checkOut).toLocaleDateString();
+        
+        return `
+            <div class="notification-item unread" onclick="viewBookingFromNotification('${booking.id}')">
+                <div class="notification-item-header">
+                    <span class="notification-customer">${booking.customerName}</span>
+                    <span class="notification-time">${timeAgo}</span>
+                </div>
+                <div class="notification-details">
+                    <div>📅 ${checkInDate} - ${checkOutDate}</div>
+                    <div>👥 ${booking.guests} guests${booking.extraBeds > 0 ? ` + ${booking.extraBeds} extra beds` : ''}</div>
+                    <div>💰 ₱${booking.totalAmount.toLocaleString()}</div>
+                </div>
+                <span class="notification-status ${booking.status}">${booking.status.toUpperCase()}</span>
+            </div>
+        `;
+    }).join('');
+}
+
+// View booking from notification
+window.viewBookingFromNotification = function(bookingId) {
+    // Close notification dropdown
+    const dropdown = document.getElementById('notificationDropdown');
+    if (dropdown) {
+        dropdown.classList.remove('show');
+    }
+    
+    // Switch to booking section
+    switchSection('booking');
+    
+    // Find and highlight the booking
+    const bookingRow = document.querySelector(`tr[data-booking-id="${bookingId}"]`);
+    if (bookingRow) {
+        bookingRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        bookingRow.style.backgroundColor = '#fff3cd';
+        setTimeout(() => {
+            bookingRow.style.backgroundColor = '';
+        }, 3000);
+    }
+};
+
+// Mark all notifications as read
+window.markAllAsRead = function() {
+    // This would typically update the booking statuses in Firebase
+    // For now, we'll just close the dropdown
+    const dropdown = document.getElementById('notificationDropdown');
+    if (dropdown) {
+        dropdown.classList.remove('show');
+    }
+    
+    // You could implement actual "mark as read" functionality here
+    console.log('Mark all notifications as read');
+};
+
+// Get time ago string
+function getTimeAgo(dateString) {
+    const now = new Date();
+    const date = new Date(dateString);
+    const diffInSeconds = Math.floor((now - date) / 1000);
+    
+    if (diffInSeconds < 60) {
+        return 'Just now';
+    } else if (diffInSeconds < 3600) {
+        const minutes = Math.floor(diffInSeconds / 60);
+        return `${minutes}m ago`;
+    } else if (diffInSeconds < 86400) {
+        const hours = Math.floor(diffInSeconds / 3600);
+        return `${hours}h ago`;
+    } else {
+        const days = Math.floor(diffInSeconds / 86400);
+        return `${days}d ago`;
+    }
+}
+
+// Close notification dropdown when clicking outside
+document.addEventListener('click', function(event) {
+    const dropdown = document.getElementById('notificationDropdown');
+    const bell = document.querySelector('.notification-bell');
+    
+    if (dropdown && !bell.contains(event.target)) {
+        dropdown.classList.remove('show');
+    }
+});
 
 function initializeAdmin() {
     // Set up sidebar navigation
@@ -577,9 +807,37 @@ window.applyBulkActionToSelected = applyBulkActionToSelected;
 window.testFirebaseConnection = testFirebaseConnection;
 window.submitAddBooking = submitAddBooking;
 
-function updateNotificationCount() {
-    const pendingCount = allBookings.filter(booking => booking.status === 'pending').length;
-    document.getElementById('notificationCount').textContent = pendingCount;
+function updateNotificationCount(count = null) {
+    let pendingCount;
+    
+    if (count !== null) {
+        // Use provided count (from real-time updates)
+        pendingCount = count;
+    } else {
+        // Calculate count from current data
+        pendingCount = allBookings.filter(booking => 
+            booking.status === 'pending' || booking.status === 'new'
+        ).length;
+    }
+    
+    const notificationCount = document.getElementById('notificationCount');
+    if (notificationCount) {
+        notificationCount.textContent = pendingCount;
+        
+        // Add visual effects for new notifications
+        if (pendingCount > 0) {
+            notificationCount.style.background = '#e74c3c';
+            notificationCount.style.animation = 'pulse 1s ease-in-out';
+            
+            // Play notification sound for new bookings
+            if (count !== null && count > 0) {
+                playNotificationSound();
+            }
+        } else {
+            notificationCount.style.background = '#95a5a6';
+            notificationCount.style.animation = 'none';
+        }
+    }
 }
 
 // Booking Management Functions
