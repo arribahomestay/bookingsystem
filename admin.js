@@ -1667,6 +1667,42 @@ window.rejectBooking = async function(bookingId) {
     }
 }
 
+// Functions for modal buttons
+window.approveBookingFromModal = async function() {
+    const bookingId = getCurrentBookingId();
+    if (bookingId) {
+        if (confirm('Are you sure you want to approve this booking?')) {
+            await updateBookingStatus(bookingId, 'confirmed');
+            closeBookingDetailsModal();
+        }
+    }
+}
+
+window.rejectBookingFromModal = async function() {
+    const bookingId = getCurrentBookingId();
+    if (bookingId) {
+        if (confirm('Are you sure you want to reject this booking?')) {
+            await updateBookingStatus(bookingId, 'rejected');
+            closeBookingDetailsModal();
+        }
+    }
+}
+
+// Get current booking ID from modal content
+function getCurrentBookingId() {
+    const content = document.getElementById('bookingDetailsContent');
+    const detailRows = content.querySelectorAll('.detail-row');
+    
+    for (let row of detailRows) {
+        const strongElement = row.querySelector('strong');
+        if (strongElement && strongElement.textContent.includes('Booking ID:')) {
+            const bookingIdText = row.textContent.replace('Booking ID:', '').trim();
+            return bookingIdText;
+        }
+    }
+    return null;
+}
+
 async function updateBookingStatus(bookingId, status) {
     console.log(`Updating booking ${bookingId} to status: ${status}`);
     
