@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arriba Homestay - Book Your Stay</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏠</text></svg>">
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://widget.cloudinary.com/v2.0/global/all.js" type="text/javascript"></script>
+    <script type="module">
+        // Import Firebase modules
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js';
+        import { getFirestore } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js';
+        import { getAnalytics } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-analytics.js';
+        
+        // Your Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCgr15-PAggrpDfczz_KS3dXgENdnIWK4w",
+            authDomain: "booking-47007.firebaseapp.com",
+            projectId: "booking-47007",
+            storageBucket: "booking-47007.firebasestorage.app",
+            messagingSenderId: "941466249313",
+            appId: "1:941466249313:web:55719f70aaadae8d252220",
+            measurementId: "G-B9RG31V3CM"
+        };
+        
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const analytics = getAnalytics(app);
+        
+        // Make Firebase available globally
+        window.firebaseApp = app;
+        window.firebaseDB = db;
+        window.firebaseAnalytics = analytics;
+    </script>
+</head>
+<body>
+    <div class="container">
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="booking-card">
+                <div class="card-header">
+                    <h2><i class="fas fa-calendar-check"></i> Book Your Stay</h2>
+                    <p>Complete the form below to reserve your perfect getaway</p>
+                </div>
+
+                <form id="bookingForm" class="booking-form">
+                    <!-- Guest Information -->
+                    <div class="form-section">
+                        <h3><i class="fas fa-user"></i> Guest Information</h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="customerName">Full Name *</label>
+                                <input type="text" id="customerName" name="customerName" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="phoneNumber">Phone Number *</label>
+                                <input type="tel" id="phoneNumber" name="phoneNumber" required>
+                            </div>
+                            <div class="form-group full-width">
+                                <label for="email">Email Address *</label>
+                                <input type="email" id="email" name="email" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Booking Details -->
+                    <div class="form-section">
+                        <h3><i class="fas fa-calendar-alt"></i> Booking Details</h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="checkIn">Check-in Date *</label>
+                                <input type="date" id="checkIn" name="checkIn" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="checkOut">Check-out Date *</label>
+                                <input type="date" id="checkOut" name="checkOut" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="guests">Number of Guests *</label>
+                                <input type="number" id="guests" name="guests" min="1" max="10" placeholder="Enter number of guests" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Payment Method</label>
+                                <div class="payment-method">
+                                    <button type="button" class="gcash-btn" onclick="showGCashDetails()">
+                                        <i class="fas fa-mobile-alt"></i>
+                                        GCash Payment
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="receipt">Upload GCash Receipt *</label>
+                                <div class="file-upload-container">
+                                    <input type="file" id="receipt" name="receipt" accept="image/*" required>
+                                    <div class="file-upload-display">
+                                        <div class="file-upload-placeholder">
+                                            <i class="fas fa-cloud-upload-alt"></i>
+                                            <p>Click to upload screenshot of GCash receipt</p>
+                                            <small>Accepted formats: JPG, PNG, GIF (Max 5MB)</small>
+                                        </div>
+                                        <div class="file-upload-preview" style="display: none;">
+                                            <img id="receiptPreview" src="" alt="Receipt Preview">
+                                            <div class="file-info">
+                                                <span id="fileName"></span>
+                                                <button type="button" onclick="removeReceipt()" class="remove-file">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="extraBeds">Extra Beds</label>
+                                <div class="extra-bed-container">
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" id="extraBedCheck" name="extraBedCheck">
+                                        <span class="checkmark"></span>
+                                        Need extra beds?
+                                    </label>
+                                    <div class="extra-bed-quantity" id="extraBedQuantity" style="display: none;">
+                                        <select id="extraBedCount" name="extraBedCount">
+                                            <option value="0">0</option>
+                                            <option value="1">1</option>
+                                            <option value="2">2</option>
+                                            <option value="3">3</option>
+                                            <option value="4">4</option>
+                                            <option value="5">5</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Availability Calendar -->
+                    <div class="form-section">
+                        <h3><i class="fas fa-calendar"></i> Check Availability</h3>
+                        <div class="calendar-container">
+                            <div class="calendar-header">
+                                <button type="button" class="calendar-nav-btn" id="prevMonth">
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                                <h4 id="currentMonthYear">October 2025</h4>
+                                <div class="calendar-nav-group">
+                                    <button type="button" class="calendar-nav-btn" id="refreshCalendar" title="Refresh availability">
+                                        <i class="fas fa-sync-alt"></i>
+                                    </button>
+                                    <button type="button" class="calendar-nav-btn" id="nextMonth">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="calendar-legend">
+                                <div class="legend-item">
+                                    <span class="legend-color available"></span>
+                                    <span>Available</span>
+                                </div>
+                                <div class="legend-item">
+                                    <span class="legend-color reserved"></span>
+                                    <span>Reserved</span>
+                                </div>
+                                <div class="legend-item">
+                                    <span class="legend-color booked"></span>
+                                    <span>Booked</span>
+                                </div>
+                            </div>
+                            
+                            <div class="calendar-grid" id="calendarGrid">
+                                <!-- Calendar will be generated by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Booking Summary -->
+                    <div class="form-section">
+                        <h3><i class="fas fa-calculator"></i> Booking Summary</h3>
+                        <div class="booking-summary">
+                            <div class="summary-row">
+                                <span>Days:</span>
+                                <span id="totalDays">0</span>
+                            </div>
+                            <div class="summary-row">
+                                <span>Nights:</span>
+                                <span id="totalNights">0</span>
+                            </div>
+                            <div class="summary-row">
+                                <span>Guests:</span>
+                                <span id="totalGuests">0</span>
+                            </div>
+                            <div class="summary-row">
+                                <span>Extra Beds:</span>
+                                <span id="totalExtraBeds">0</span>
+                            </div>
+                            <div class="summary-row total-row">
+                                <span>Total Amount:</span>
+                                <span id="totalAmount">₱0.00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="form-section">
+                        <button type="submit" class="submit-btn" id="submitBtn">
+                            <i class="fas fa-paper-plane"></i>
+                            Submit Booking
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>&copy; 2025 Arriba Homestay. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <!-- GCash Payment Modal -->
+    <div id="gcashModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="gcash-icon">
+                    <i class="fas fa-mobile-alt"></i>
+                </div>
+                <h3>GCash Payment Details</h3>
+            </div>
+            <div class="modal-body">
+                <p>Please send your payment to the following GCash account:</p>
+                <div class="minimum-deposit">
+                    <strong>Minimum Deposit: ₱3,000.00</strong>
+                </div>
+                <div class="gcash-details">
+                    <div class="gcash-info">
+                        <div class="gcash-item">
+                            <strong>GCash Number:</strong>
+                            <span class="gcash-number">09190027790</span>
+                            <button onclick="copyToClipboard('09190027790')" class="copy-btn">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                        <div class="gcash-item">
+                            <strong>Account Name:</strong>
+                            <span>Mary Camille R.</span>
+                        </div>
+                    </div>
+                    <div class="payment-instructions">
+                        <h4>Payment Instructions:</h4>
+                        <ol>
+                            <li>Open your GCash app</li>
+                            <li>Go to "Send Money"</li>
+                            <li>Enter the GCash number above</li>
+                            <li>Complete the transaction</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button onclick="closeGCashModal()" class="btn-primary">Got it!</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="successModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="success-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <h3>Booking Submitted!</h3>
+            </div>
+            <div class="modal-body">
+                <p>Your booking has been submitted successfully! We will contact you soon to confirm your reservation.</p>
+                <div class="booking-id">
+                    <strong>Booking ID:</strong> <span id="bookingId"></span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button onclick="closeModal()" class="btn-primary">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
