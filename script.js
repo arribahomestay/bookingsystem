@@ -604,20 +604,75 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        navigator.clipboard.writeText(bookingId).then(() => {
-            // Show success message
-            const button = event.target;
-            const originalText = button.innerHTML;
-            button.innerHTML = '<i class="fas fa-check"></i> Copied!';
-            button.style.background = '#27ae60';
+        // Try multiple copy methods
+        const copyToClipboard = async (text) => {
+            // Method 1: Modern Clipboard API
+            if (navigator.clipboard && window.isSecureContext) {
+                try {
+                    await navigator.clipboard.writeText(text);
+                    return true;
+                } catch (err) {
+                    console.log('Clipboard API failed:', err);
+                }
+            }
             
-            setTimeout(() => {
-                button.innerHTML = originalText;
-                button.style.background = '#3498db';
-            }, 2000);
+            // Method 2: Fallback for older browsers
+            try {
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                textArea.style.position = 'fixed';
+                textArea.style.left = '-999999px';
+                textArea.style.top = '-999999px';
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                
+                const successful = document.execCommand('copy');
+                document.body.removeChild(textArea);
+                
+                if (successful) {
+                    return true;
+                }
+            } catch (err) {
+                console.log('Fallback copy failed:', err);
+            }
+            
+            return false;
+        };
+        
+        copyToClipboard(bookingId).then(success => {
+            if (success) {
+                // Show success message
+                const button = event.target;
+                const originalText = button.innerHTML;
+                button.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                button.style.background = '#27ae60';
+                
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.style.background = '#3498db';
+                }, 2000);
+            } else {
+                // Show manual copy option
+                const manualCopy = confirm(`Copy this booking ID manually:\n\n${bookingId}\n\nClick OK to select the text.`);
+                if (manualCopy) {
+                    // Create a temporary input to select the text
+                    const tempInput = document.createElement('input');
+                    tempInput.value = bookingId;
+                    tempInput.style.position = 'fixed';
+                    tempInput.style.left = '-999999px';
+                    tempInput.style.top = '-999999px';
+                    document.body.appendChild(tempInput);
+                    tempInput.select();
+                    tempInput.setSelectionRange(0, 99999);
+                    document.body.removeChild(tempInput);
+                    
+                    alert('Booking ID selected! Press Ctrl+C (or Cmd+C on Mac) to copy.');
+                }
+            }
         }).catch(err => {
-            console.error('Failed to copy booking ID:', err);
-            alert('Failed to copy booking ID. Please copy manually: ' + bookingId);
+            console.error('Copy failed:', err);
+            alert(`Failed to copy booking ID. Please copy manually: ${bookingId}`);
         });
     }
 
