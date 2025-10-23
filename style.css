@@ -484,6 +484,20 @@ body::before {
     font-size: 0.9rem;
 }
 
+/* Mobile Footer Styles */
+@media (max-width: 768px) {
+    .footer {
+        text-align: center !important;
+        padding: 15px 20px;
+        font-size: 0.85rem;
+    }
+    
+    .footer p {
+        text-align: center !important;
+        margin: 0 auto;
+    }
+}
+
 /* Modal Styles */
 .modal {
     position: fixed;
@@ -720,6 +734,17 @@ body::before {
     .card-header h2 {
         font-size: 1.5rem;
     }
+    
+    /* Ensure footer is centered on mobile */
+    .footer {
+        text-align: center !important;
+        padding: 15px 20px;
+    }
+    
+    .footer p {
+        text-align: center !important;
+        margin: 0 auto;
+    }
 }
 
 @media (max-width: 480px) {
@@ -737,6 +762,18 @@ body::before {
     
     .modal-content {
         padding: 30px 20px;
+    }
+    
+    /* Ensure footer is centered on small mobile */
+    .footer {
+        text-align: center !important;
+        padding: 10px 15px;
+        font-size: 0.8rem;
+    }
+    
+    .footer p {
+        text-align: center !important;
+        margin: 0 auto;
     }
 }
 
