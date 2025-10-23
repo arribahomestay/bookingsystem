@@ -102,8 +102,12 @@
                                 <input type="date" id="checkOut" name="checkOut" required>
                             </div>
                             <div class="form-group">
-                                <label for="guests">Number of Guests *</label>
-                                <input type="number" id="guests" name="guests" min="1" max="10" placeholder="Enter number of guests" required>
+                                <label for="adults">Adults *</label>
+                                <input type="number" id="adults" name="adults" min="1" max="10" placeholder="Enter number of adults" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="kids">Kids</label>
+                                <input type="number" id="kids" name="kids" min="0" max="10" placeholder="Enter number of kids" value="0">
                             </div>
                             <div class="form-group">
                                 <label>Payment Method</label>
@@ -212,8 +216,12 @@
                                 <span id="totalNights">0</span>
                             </div>
                             <div class="summary-row">
-                                <span>Guests:</span>
-                                <span id="totalGuests">0</span>
+                                <span>Adults:</span>
+                                <span id="totalAdults">0</span>
+                            </div>
+                            <div class="summary-row">
+                                <span>Kids:</span>
+                                <span id="totalKids">0</span>
                             </div>
                             <div class="summary-row">
                                 <span>Extra Beds:</span>
@@ -314,6 +322,7 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

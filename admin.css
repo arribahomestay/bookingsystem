@@ -346,8 +346,14 @@ button:has(.fa-refresh) {
 }
 
 .notification-item.unread {
-    background: #fff3cd;
-    border-left: 3px solid #ffc107;
+    background: #d4edda;
+    border-left: 3px solid #28a745;
+}
+
+.notification-item.read {
+    background: #f8f9fa;
+    border-left: 3px solid #6c757d;
+    opacity: 0.8;
 }
 
 .notification-item-header {

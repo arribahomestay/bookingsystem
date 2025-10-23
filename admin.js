@@ -1,8 +1,62 @@
 // Admin Dashboard JavaScript with Firebase Integration
 
+// EmailJS Configuration
+const EMAILJS_CONFIG = {
+    PUBLIC_KEY: "kDx6o0Gsh2ZtIqQvO",
+    SERVICE_ID: "service_fcen5ps",
+    TEMPLATE_ID: "template_lksv70e"
+};
+
+// Initialize EmailJS
+emailjs.init(EMAILJS_CONFIG.PUBLIC_KEY);
+
+// Send booking confirmation email
+async function sendBookingConfirmationEmail(booking) {
+    try {
+        console.log('Sending booking confirmation email to:', booking.email);
+        
+        // Calculate duration and nights
+        const checkIn = new Date(booking.checkIn);
+        const checkOut = new Date(booking.checkOut);
+        const timeDiff = checkOut.getTime() - checkIn.getTime();
+        const days = Math.ceil(timeDiff / (1000 * 3600 * 24));
+        const nights = days - 1; // Nights = days - 1 (you don't sleep on the last day)
+        
+        // Prepare email parameters
+        const emailParams = {
+            customer_name: booking.customerName,
+            booking_id: booking.id,
+            check_in_date: formatDate(booking.checkIn),
+            check_out_date: formatDate(booking.checkOut),
+            duration: days,
+            nights: nights,
+            adults: booking.adults,
+            kids: booking.kids || 0,
+            extra_beds: booking.extraBeds || 0,
+            total_amount: booking.totalAmount,
+            email: booking.email,
+            phone: booking.phoneNumber
+        };
+        
+        // Send email
+        const result = await emailjs.send(
+            EMAILJS_CONFIG.SERVICE_ID,
+            EMAILJS_CONFIG.TEMPLATE_ID,
+            emailParams
+        );
+        
+        console.log('Email sent successfully:', result);
+        return { success: true, result };
+        
+    } catch (error) {
+        console.error('Failed to send email:', error);
+        return { success: false, error };
+    }
+}
+
 // Global Firebase variables
 let db;
-let collection, addDoc, getDocs, query, orderBy, where, updateDoc, doc, onSnapshot;
+let collection, addDoc, getDocs, getDoc, query, orderBy, where, updateDoc, doc, onSnapshot;
 let unsubscribeBookings; // For real-time listener
 
 // Wait for Firebase to be available
@@ -42,11 +96,12 @@ async function initializeFirebase() {
         console.log('Firebase DB obtained, importing functions...');
         
         // Import Firebase functions dynamically
-        const { collection: col, addDoc: add, getDocs: get, query: q, orderBy: order, where: w, updateDoc: update, doc: d, onSnapshot: onSnap } = await import('https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js');
+        const { collection: col, addDoc: add, getDocs: get, getDoc: getSingle, query: q, orderBy: order, where: w, updateDoc: update, doc: d, onSnapshot: onSnap } = await import('https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js');
         
         collection = col;
         addDoc = add;
         getDocs = get;
+        getDoc = getSingle;
         query = q;
         orderBy = order;
         where = w;
@@ -155,7 +210,8 @@ async function loadInitialData() {
                 email: data.email,
                 checkIn: data.checkIn,
                 checkOut: data.checkOut,
-                guests: data.guests,
+                adults: data.adults,
+                kids: data.kids,
                 extraBeds: data.extraBeds,
                 totalAmount: data.totalAmount,
                 status: data.status,
@@ -261,7 +317,8 @@ function setupRealtimeNotifications() {
                     email: data.email,
                     checkIn: data.check_in || data.checkIn,
                     checkOut: data.check_out || data.checkOut,
-                    guests: data.guests,
+                    adults: data.adults,
+                    kids: data.kids,
                     extraBeds: data.extra_beds || data.extraBeds,
                     totalAmount: data.total_amount || data.totalAmount,
                     status: data.status,
@@ -359,16 +416,18 @@ function updateNotificationList() {
         const timeAgo = getTimeAgo(booking.createdAt);
         const checkInDate = new Date(booking.checkIn).toLocaleDateString();
         const checkOutDate = new Date(booking.checkOut).toLocaleDateString();
+        const isRead = isNotificationRead(booking.id);
+        const readClass = isRead ? 'read' : 'unread';
         
         return `
-            <div class="notification-item unread" onclick="viewBookingFromNotification('${booking.id}')">
+            <div class="notification-item ${readClass}" onclick="viewBookingFromNotification('${booking.id}')">
                 <div class="notification-item-header">
                     <span class="notification-customer">${booking.customerName}</span>
                     <span class="notification-time">${timeAgo}</span>
                 </div>
                 <div class="notification-details">
                     <div>📅 ${checkInDate} - ${checkOutDate}</div>
-                    <div>👥 ${booking.guests} guests${booking.extraBeds > 0 ? ` + ${booking.extraBeds} extra beds` : ''}</div>
+                    <div>👥 ${booking.adults} adults${booking.kids > 0 ? `, ${booking.kids} kids` : ''}${booking.extraBeds > 0 ? ` + ${booking.extraBeds} extra beds` : ''}</div>
                     <div>💰 ₱${booking.totalAmount.toLocaleString()}</div>
                 </div>
                 <span class="notification-status ${booking.status}">${booking.status.toUpperCase()}</span>
@@ -377,12 +436,37 @@ function updateNotificationList() {
     }).join('');
 }
 
+// Mark notification as read in localStorage
+function markNotificationAsRead(bookingId) {
+    const readNotifications = JSON.parse(localStorage.getItem('readNotifications') || '[]');
+    if (!readNotifications.includes(bookingId)) {
+        readNotifications.push(bookingId);
+        localStorage.setItem('readNotifications', JSON.stringify(readNotifications));
+    }
+}
+
+// Check if notification is read
+function isNotificationRead(bookingId) {
+    const readNotifications = JSON.parse(localStorage.getItem('readNotifications') || '[]');
+    return readNotifications.includes(bookingId);
+}
+
 // View booking from notification
 window.viewBookingFromNotification = function(bookingId) {
     // Close notification dropdown
     const dropdown = document.getElementById('notificationDropdown');
     if (dropdown) {
         dropdown.classList.remove('show');
+    }
+    
+    // Mark notification as read in localStorage
+    markNotificationAsRead(bookingId);
+    
+    // Mark notification as read by removing unread class
+    const notificationItem = document.querySelector(`.notification-item[onclick*="${bookingId}"]`);
+    if (notificationItem) {
+        notificationItem.classList.remove('unread');
+        notificationItem.classList.add('read');
     }
     
     // Switch to booking section
@@ -397,19 +481,40 @@ window.viewBookingFromNotification = function(bookingId) {
             bookingRow.style.backgroundColor = '';
         }, 3000);
     }
+    
+    // Show booking details modal
+    viewBookingDetails(bookingId);
+    
+    // Update notification count
+    updateNotificationCount();
 };
 
 // Mark all notifications as read
 window.markAllAsRead = function() {
-    // This would typically update the booking statuses in Firebase
-    // For now, we'll just close the dropdown
+    // Mark all notification items as read
+    const notificationItems = document.querySelectorAll('.notification-item.unread');
+    notificationItems.forEach(item => {
+        item.classList.remove('unread');
+        item.classList.add('read');
+        
+        // Extract booking ID from onclick attribute and mark as read in localStorage
+        const onclickAttr = item.getAttribute('onclick');
+        const bookingIdMatch = onclickAttr.match(/viewBookingFromNotification\('([^']+)'\)/);
+        if (bookingIdMatch) {
+            markNotificationAsRead(bookingIdMatch[1]);
+        }
+    });
+    
+    // Close the dropdown
     const dropdown = document.getElementById('notificationDropdown');
     if (dropdown) {
         dropdown.classList.remove('show');
     }
     
-    // You could implement actual "mark as read" functionality here
-    console.log('Mark all notifications as read');
+    // Update notification count
+    updateNotificationCount();
+    
+    console.log('All notifications marked as read');
 };
 
 // Get time ago string
@@ -811,24 +916,23 @@ window.testFirebaseConnection = testFirebaseConnection;
 window.submitAddBooking = submitAddBooking;
 
 function updateNotificationCount(count = null) {
-    let pendingCount;
+    let unreadCount;
     
     if (count !== null) {
         // Use provided count (from real-time updates)
-        pendingCount = count;
+        unreadCount = count;
     } else {
-        // Calculate count from current data
-        pendingCount = allBookings.filter(booking => 
-            booking.status === 'pending' || booking.status === 'new'
-        ).length;
+        // Calculate count from unread notifications in the DOM
+        const unreadNotifications = document.querySelectorAll('.notification-item.unread');
+        unreadCount = unreadNotifications.length;
     }
     
     const notificationCount = document.getElementById('notificationCount');
     if (notificationCount) {
-        notificationCount.textContent = pendingCount;
+        notificationCount.textContent = unreadCount;
         
         // Add visual effects for new notifications
-        if (pendingCount > 0) {
+        if (unreadCount > 0) {
             notificationCount.style.background = '#e74c3c';
             notificationCount.style.animation = 'pulse 1s ease-in-out';
             
@@ -892,8 +996,10 @@ function createBookingRow(booking) {
         <td>${formatDate(booking.checkIn)}</td>
         <td>${formatDate(booking.checkOut)}</td>
         <td>
-            <div>${booking.guests} guests</div>
-            <div style="font-size: 0.8rem; color: #666;">${days} days, ${nights} nights</div>
+            <div>${booking.adults}</div>
+        </td>
+        <td>
+            <div>${booking.kids}</div>
         </td>
         <td>₱${booking.totalAmount.toLocaleString()}</td>
         <td><span class="status-badge ${statusClass}">${statusText}</span></td>
@@ -995,8 +1101,10 @@ function createRecordRow(record) {
         <td>${formatDate(record.checkIn)}</td>
         <td>${formatDate(record.checkOut)}</td>
         <td>
-            <div>${record.guests} guests</div>
-            <div style="font-size: 0.8rem; color: #666;">${days} days, ${nights} nights</div>
+            <div>${record.adults}</div>
+        </td>
+        <td>
+            <div>${record.kids}</div>
         </td>
         <td>₱${record.totalAmount.toLocaleString()}</td>
         <td><span class="status-badge ${statusClass}">${statusText}</span></td>
@@ -1499,7 +1607,8 @@ async function submitAddBooking() {
         email: formData.get('email'),
         checkIn: formData.get('checkIn'),
         checkOut: formData.get('checkOut'),
-        guests: parseInt(formData.get('guests')),
+        adults: parseInt(formData.get('adults')),
+        kids: parseInt(formData.get('kids')),
         extraBeds: parseInt(formData.get('extraBeds')),
         status: formData.get('status'),
         totalAmount: calculateBookingAmount(formData.get('checkIn'), formData.get('checkOut'), parseInt(formData.get('extraBeds'))),
@@ -1540,7 +1649,7 @@ async function submitAddBooking() {
 }
 
 function validateAddBookingForm() {
-    const requiredFields = ['customerName', 'phoneNumber', 'email', 'checkIn', 'checkOut', 'guests'];
+    const requiredFields = ['customerName', 'phoneNumber', 'email', 'checkIn', 'checkOut', 'adults'];
     
     for (const field of requiredFields) {
         const input = document.getElementById(`add${field.charAt(0).toUpperCase() + field.slice(1)}`);
@@ -1613,7 +1722,10 @@ function displayBookingDetails(booking) {
                 <strong>Duration:</strong> ${days} days, ${nights} nights
             </div>
             <div class="detail-row">
-                <strong>Number of Guests:</strong> ${booking.guests}
+                <strong>Number of Adults:</strong> ${booking.adults}
+            </div>
+            <div class="detail-row">
+                <strong>Number of Kids:</strong> ${booking.kids}
             </div>
             <div class="detail-row">
                 <strong>Extra Beds:</strong> ${booking.extraBeds}
@@ -1659,8 +1771,8 @@ function closeBookingDetailsModal() {
 }
 
 window.approveBooking = async function(bookingId) {
-    if (confirm('Are you sure you want to approve this booking?')) {
-        await updateBookingStatus(bookingId, 'confirmed');
+    if (confirm('Are you sure you want to approve this booking? A confirmation email will be sent to the customer.')) {
+        await updateBookingStatus(bookingId, 'confirmed', true); // true = send email
     }
 }
 
@@ -1674,8 +1786,8 @@ window.rejectBooking = async function(bookingId) {
 window.approveBookingFromModal = async function() {
     const bookingId = getCurrentBookingId();
     if (bookingId) {
-        if (confirm('Are you sure you want to approve this booking?')) {
-            await updateBookingStatus(bookingId, 'confirmed');
+        if (confirm('Are you sure you want to approve this booking? A confirmation email will be sent to the customer.')) {
+            await updateBookingStatus(bookingId, 'confirmed', true); // true = send email
             closeBookingDetailsModal();
         }
     }
@@ -1706,7 +1818,7 @@ function getCurrentBookingId() {
     return null;
 }
 
-async function updateBookingStatus(bookingId, status) {
+async function updateBookingStatus(bookingId, status, sendEmail = false) {
     console.log(`Updating booking ${bookingId} to status: ${status}`);
     
     try {
@@ -1716,6 +1828,26 @@ async function updateBookingStatus(bookingId, status) {
             status: status,
             updatedAt: new Date().toISOString()
         });
+        
+        // Send confirmation email if approved and requested
+        if (status === 'confirmed' && sendEmail) {
+            try {
+                // Get booking data to send email
+                const bookingDoc = await getDoc(bookingRef);
+                const booking = { id: bookingId, ...bookingDoc.data() };
+                
+                // Send confirmation email
+                const emailResult = await sendBookingConfirmationEmail(booking);
+                
+                if (emailResult.success) {
+                    console.log('Confirmation email sent successfully');
+                } else {
+                    console.error('Failed to send confirmation email:', emailResult.error);
+                }
+            } catch (emailError) {
+                console.error('Error sending confirmation email:', emailError);
+            }
+        }
         
         console.log(`Successfully updated booking ${bookingId} to ${status} in Firebase`);
         
@@ -1909,7 +2041,8 @@ function exportRecords() {
             'Email',
             'Check-in Date',
             'Check-out Date',
-            'Guests',
+            'Adults',
+            'Kids',
             'Extra Beds',
             'Total Amount',
             'Status',
@@ -1925,7 +2058,8 @@ function exportRecords() {
                 record.email,
                 record.checkIn,
                 record.checkOut,
-                record.guests,
+                record.adults,
+                record.kids,
                 record.extraBeds,
                 record.totalAmount,
                 record.status,

@@ -210,7 +210,8 @@
                                 <th>Contact</th>
                                 <th>Check-in</th>
                                 <th>Check-out</th>
-                                <th>Guests</th>
+                                <th>Adults</th>
+                                <th>Kids</th>
                                 <th>Amount</th>
                                 <th>Status</th>
                                 <th>Actions</th>
@@ -275,7 +276,8 @@
                                 <th>Contact</th>
                                 <th>Check-in</th>
                                 <th>Check-out</th>
-                                <th>Guests</th>
+                                <th>Adults</th>
+                                <th>Kids</th>
                                 <th>Amount</th>
                                 <th>Status</th>
                                 <th>Created</th>
@@ -507,8 +509,12 @@
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="addGuests">Number of Guests *</label>
-                            <input type="number" id="addGuests" name="guests" min="1" max="10" required>
+                            <label for="addAdults">Number of Adults *</label>
+                            <input type="number" id="addAdults" name="adults" min="1" max="10" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="addKids">Number of Kids</label>
+                            <input type="number" id="addKids" name="kids" min="0" max="10" value="0">
                         </div>
                         <div class="form-group">
                             <label for="addExtraBeds">Extra Beds</label>
@@ -605,6 +611,7 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script src="admin.js"></script>
 </body>
 </html>

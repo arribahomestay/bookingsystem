@@ -1,4 +1,69 @@
 // Booking System JavaScript with Firebase Integration
+
+// EmailJS Configuration for Booking Submitted Email
+const EMAILJS_CONFIG = {
+    PUBLIC_KEY: "kDx6o0Gsh2ZtIqQvO",
+    SERVICE_ID: "service_fcen5ps",
+    TEMPLATE_ID_SUBMITTED: "template_ynd8k7e" // Booking submitted template
+};
+
+// Initialize EmailJS
+emailjs.init(EMAILJS_CONFIG.PUBLIC_KEY);
+
+// Send booking submitted confirmation email
+async function sendBookingSubmittedEmail(bookingData) {
+    try {
+        console.log('Sending booking submitted email to:', bookingData.email);
+        
+        // Calculate duration and nights
+        const checkIn = new Date(bookingData.checkIn);
+        const checkOut = new Date(bookingData.checkOut);
+        const timeDiff = checkOut.getTime() - checkIn.getTime();
+        const days = Math.ceil(timeDiff / (1000 * 3600 * 24));
+        const nights = days - 1; // Nights = days - 1
+        
+        // Prepare email parameters
+        const emailParams = {
+            customer_name: bookingData.customerName,
+            booking_id: bookingData.id || bookingData.bookingId,
+            check_in_date: formatDate(bookingData.checkIn),
+            check_out_date: formatDate(bookingData.checkOut),
+            duration: days,
+            nights: nights,
+            adults: bookingData.adults,
+            kids: bookingData.kids || 0,
+            extra_beds: bookingData.extraBeds || 0,
+            total_amount: bookingData.totalAmount,
+            email: bookingData.email,
+            phone: bookingData.phoneNumber
+        };
+        
+        // Send email
+        const result = await emailjs.send(
+            EMAILJS_CONFIG.SERVICE_ID,
+            EMAILJS_CONFIG.TEMPLATE_ID_SUBMITTED,
+            emailParams
+        );
+        
+        console.log('Booking submitted email sent successfully:', result);
+        return { success: true, result };
+        
+    } catch (error) {
+        console.error('Failed to send booking submitted email:', error);
+        return { success: false, error };
+    }
+}
+
+// Format date function
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     // Wait for Firebase to be available
     const waitForFirebase = () => {
@@ -251,7 +316,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const bookingForm = document.getElementById('bookingForm');
     const checkInInput = document.getElementById('checkIn');
     const checkOutInput = document.getElementById('checkOut');
-    const guestsSelect = document.getElementById('guests');
+    const adultsInput = document.getElementById('adults');
+    const kidsInput = document.getElementById('kids');
     const extraBedCheck = document.getElementById('extraBedCheck');
     const extraBedQuantity = document.getElementById('extraBedQuantity');
     const extraBedCount = document.getElementById('extraBedCount');
@@ -262,12 +328,15 @@ document.addEventListener('DOMContentLoaded', function() {
     // Summary elements
     const totalDaysSpan = document.getElementById('totalDays');
     const totalNightsSpan = document.getElementById('totalNights');
-    const totalGuestsSpan = document.getElementById('totalGuests');
+    const totalAdultsSpan = document.getElementById('totalAdults');
+    const totalKidsSpan = document.getElementById('totalKids');
     const totalExtraBedsSpan = document.getElementById('totalExtraBeds');
     const totalAmountSpan = document.getElementById('totalAmount');
 
     // Pricing constants
     const PRICE_PER_NIGHT = 3300;
+    const PRICE_PER_ADULT = 300;
+    const PRICE_PER_KID = 240;
     const PRICE_PER_EXTRA_BED = 300;
     const MAX_EXTRA_BEDS = 5;
 
@@ -303,7 +372,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Event Listeners
     checkInInput.addEventListener('change', handleDateChange);
     checkOutInput.addEventListener('change', handleDateChange);
-    guestsSelect.addEventListener('input', updateBookingSummary);
+    adultsInput.addEventListener('input', updateBookingSummary);
+    kidsInput.addEventListener('input', updateBookingSummary);
     extraBedCheck.addEventListener('change', handleExtraBedToggle);
     extraBedCount.addEventListener('change', updateBookingSummary);
     bookingForm.addEventListener('submit', handleFormSubmit);
@@ -364,7 +434,8 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateBookingSummary() {
         const checkIn = checkInInput.value;
         const checkOut = checkOutInput.value;
-        const guests = parseInt(guestsSelect.value) || 0;
+        const adults = parseInt(adultsInput.value) || 0;
+        const kids = parseInt(kidsInput.value) || 0;
         const extraBeds = extraBedCheck.checked ? parseInt(extraBedCount.value) || 0 : 0;
 
         // Calculate days and nights
@@ -381,18 +452,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Calculate total amount
         const baseAmount = nights * PRICE_PER_NIGHT;
+        const adultAmount = adults * PRICE_PER_ADULT;
+        const kidAmount = kids * PRICE_PER_KID;
         const extraBedAmount = extraBeds * PRICE_PER_EXTRA_BED;
-        const totalAmount = baseAmount + extraBedAmount;
+        const totalAmount = baseAmount + adultAmount + kidAmount + extraBedAmount;
 
         // Update display
         totalDaysSpan.textContent = days;
         totalNightsSpan.textContent = nights;
-        totalGuestsSpan.textContent = guests;
+        totalAdultsSpan.textContent = adults;
+        totalKidsSpan.textContent = kids;
         totalExtraBedsSpan.textContent = extraBeds;
         totalAmountSpan.textContent = `₱${totalAmount.toLocaleString()}`;
 
         // Enable/disable submit button
-        const isValid = checkIn && checkOut && guests > 0 && totalAmount > 0;
+        const isValid = checkIn && checkOut && adults > 0 && totalAmount > 0;
         submitBtn.disabled = !isValid;
     }
 
@@ -422,7 +496,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 email: document.getElementById('email').value.trim(),
                 checkIn: checkInInput.value,
                 checkOut: checkOutInput.value,
-                guests: parseInt(guestsSelect.value),
+                adults: parseInt(adultsInput.value),
+                kids: parseInt(kidsInput.value) || 0,
                 extraBeds: extraBedCheck.checked ? parseInt(extraBedCount.value) || 0 : 0,
                 totalAmount: calculateTotalAmount(),
                 status: 'pending',
@@ -432,10 +507,23 @@ document.addEventListener('DOMContentLoaded', function() {
 
             console.log('Booking data:', bookingData);
 
-            // Simulate API call
+            // Submit booking to database
             const result = await submitBooking(bookingData);
             
             console.log('Booking submitted successfully');
+            
+            // Send booking submitted confirmation email
+            try {
+                const emailResult = await sendBookingSubmittedEmail(result);
+                if (emailResult.success) {
+                    console.log('Booking submitted email sent successfully');
+                } else {
+                    console.error('Failed to send booking submitted email:', emailResult.error);
+                }
+            } catch (emailError) {
+                console.error('Error sending booking submitted email:', emailError);
+            }
+            
             showSuccessModal(result.id);
             resetForm();
 
@@ -458,7 +546,7 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('Starting form validation...');
 
         // Validate required fields
-        const requiredFields = ['customerName', 'phoneNumber', 'email', 'checkIn', 'checkOut', 'guests'];
+        const requiredFields = ['customerName', 'phoneNumber', 'email', 'checkIn', 'checkOut', 'adults'];
         
         requiredFields.forEach(fieldId => {
             const field = document.getElementById(fieldId);
@@ -496,12 +584,20 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Validation failed: Invalid date range');
         }
 
-        // Validate number of guests
-        const guests = parseInt(guestsSelect.value) || 0;
-        if (guests < 1 || guests > 10) {
-            showError(guestsSelect, 'Number of guests must be between 1 and 10');
+        // Validate number of adults
+        const adults = parseInt(adultsInput.value) || 0;
+        if (adults < 1 || adults > 10) {
+            showError(adultsInput, 'Number of adults must be between 1 and 10');
             isValid = false;
-            console.log('Validation failed: Invalid guest count');
+            console.log('Validation failed: Invalid adult count');
+        }
+
+        // Validate number of kids
+        const kids = parseInt(kidsInput.value) || 0;
+        if (kids < 0 || kids > 10) {
+            showError(kidsInput, 'Number of kids must be between 0 and 10');
+            isValid = false;
+            console.log('Validation failed: Invalid kid count');
         }
 
         // Validate extra beds
@@ -533,9 +629,16 @@ document.addEventListener('DOMContentLoaded', function() {
         const checkIn = new Date(checkInInput.value);
         const checkOut = new Date(checkOutInput.value);
         const nights = Math.ceil((checkOut - checkIn) / (1000 * 3600 * 24));
+        const adults = parseInt(adultsInput.value) || 0;
+        const kids = parseInt(kidsInput.value) || 0;
         const extraBeds = extraBedCheck.checked ? parseInt(extraBedCount.value) || 0 : 0;
         
-        return (nights * PRICE_PER_NIGHT) + (extraBeds * PRICE_PER_EXTRA_BED);
+        const baseAmount = nights * PRICE_PER_NIGHT;
+        const adultAmount = adults * PRICE_PER_ADULT;
+        const kidAmount = kids * PRICE_PER_KID;
+        const extraBedAmount = extraBeds * PRICE_PER_EXTRA_BED;
+        
+        return baseAmount + adultAmount + kidAmount + extraBedAmount;
     }
 
     // Submit booking to Firebase with fallback to localStorage
@@ -553,7 +656,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 email: bookingData.email,
                 checkIn: bookingData.checkIn,
                 checkOut: bookingData.checkOut,
-                guests: bookingData.guests,
+                adults: bookingData.adults,
+                kids: bookingData.kids,
                 extraBeds: bookingData.extraBeds,
                 totalAmount: bookingData.totalAmount,
                 status: bookingData.status,

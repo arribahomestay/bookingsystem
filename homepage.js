@@ -293,7 +293,8 @@ window.checkBookingStatus = async function() {
             email: bookingData.email,
             checkIn: bookingData.check_in || bookingData.checkIn,
             checkOut: bookingData.check_out || bookingData.checkOut,
-            guests: bookingData.guests,
+            adults: bookingData.adults,
+            kids: bookingData.kids,
             extraBeds: bookingData.extra_beds || bookingData.extraBeds,
             totalAmount: bookingData.total_amount || bookingData.totalAmount,
             status: bookingData.status,
@@ -342,8 +343,12 @@ window.checkBookingStatus = async function() {
                     <span class="info-value">${days} days, ${nights} nights</span>
                 </div>
                 <div class="info-row">
-                    <span class="info-label">Number of Guests:</span>
-                    <span class="info-value">${booking.guests}</span>
+                    <span class="info-label">Number of Adults:</span>
+                    <span class="info-value">${booking.adults}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Number of Kids:</span>
+                    <span class="info-value">${booking.kids || 0}</span>
                 </div>
                 <div class="info-row">
                     <span class="info-label">Extra Beds:</span>
