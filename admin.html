@@ -103,7 +103,13 @@
             </div>
             
             <ul class="sidebar-menu">
-                <li class="active" data-section="booking">
+                <li class="active" data-section="analytics">
+                    <a href="#analytics">
+                        <i class="fas fa-chart-bar"></i>
+                        <span>Analytics</span>
+                    </a>
+                </li>
+                <li data-section="booking">
                     <a href="#booking">
                         <i class="fas fa-calendar-check"></i>
                         <span>Booking</span>
@@ -141,7 +147,7 @@
         <main class="main-content">
             <!-- Header -->
             <header class="main-header">
-                <h1 id="pageTitle">Booking Management</h1>
+                <h1 id="pageTitle">Analytics Dashboard</h1>
                 <div class="header-actions">
                     <span class="welcome-text">Welcome back, Admin!</span>
                     <div class="notification-bell" onclick="toggleNotificationDropdown()">
@@ -162,8 +168,175 @@
                 </div>
             </header>
 
+            <!-- ANALYTICS Section -->
+            <section id="analytics-section" class="content-section active">
+                <div class="section-header">
+                    <h2><i class="fas fa-chart-bar"></i> Analytics Dashboard</h2>
+                    <div class="section-actions">
+                        <button onclick="refreshAnalytics()" class="btn-primary">
+                            <i class="fas fa-sync-alt"></i> Refresh Data
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Analytics Filters -->
+                <div class="filters-section">
+                    <div class="filter-group">
+                        <label for="analyticsDateRange">Date Range:</label>
+                        <select id="analyticsDateRange" onchange="updateAnalytics()">
+                            <option value="7">Last 7 days</option>
+                            <option value="30">Last 30 days</option>
+                            <option value="90">Last 3 months</option>
+                            <option value="365">Last year</option>
+                            <option value="all">All time</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="analyticsPeriod">Period:</label>
+                        <select id="analyticsPeriod" onchange="updateAnalytics()">
+                            <option value="daily">Daily</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="monthly">Monthly</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Analytics Cards -->
+                <div class="analytics-cards">
+                    <!-- Revenue Card -->
+                    <div class="analytics-card revenue-card">
+                        <div class="card-icon">
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                        <div class="card-content">
+                            <h3 id="totalRevenue">₱0</h3>
+                            <p>Total Revenue</p>
+                            <div class="card-change" id="revenueChange">
+                                <i class="fas fa-arrow-up"></i>
+                                <span>0%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bookings Card -->
+                    <div class="analytics-card bookings-card">
+                        <div class="card-icon">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <div class="card-content">
+                            <h3 id="totalBookings">0</h3>
+                            <p>Total Bookings</p>
+                            <div class="card-change" id="bookingsChange">
+                                <i class="fas fa-arrow-up"></i>
+                                <span>0%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Occupancy Card -->
+                    <div class="analytics-card occupancy-card">
+                        <div class="card-icon">
+                            <i class="fas fa-bed"></i>
+                        </div>
+                        <div class="card-content">
+                            <h3 id="occupancyRate">0%</h3>
+                            <p>Occupancy Rate</p>
+                            <div class="card-change" id="occupancyChange">
+                                <i class="fas fa-arrow-up"></i>
+                                <span>0%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Average Booking Value Card -->
+                    <div class="analytics-card avg-value-card">
+                        <div class="card-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="card-content">
+                            <h3 id="avgBookingValue">₱0</h3>
+                            <p>Avg Booking Value</p>
+                            <div class="card-change" id="avgValueChange">
+                                <i class="fas fa-arrow-up"></i>
+                                <span>0%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Simple Charts Section -->
+                <div class="analytics-charts">
+                    <!-- Revenue Chart -->
+                    <div class="chart-container">
+                        <div class="chart-header">
+                            <h3><i class="fas fa-chart-line"></i> Monthly Revenue</h3>
+                        </div>
+                        <canvas id="revenueChart" width="400" height="200"></canvas>
+                    </div>
+
+                    <!-- Bookings Chart -->
+                    <div class="chart-container">
+                        <div class="chart-header">
+                            <h3><i class="fas fa-chart-bar"></i> Monthly Bookings</h3>
+                        </div>
+                        <canvas id="bookingsChart" width="400" height="200"></canvas>
+                    </div>
+
+                    <!-- Booking Status Chart -->
+                    <div class="chart-container">
+                        <div class="chart-header">
+                            <h3><i class="fas fa-chart-pie"></i> Booking Status</h3>
+                        </div>
+                        <canvas id="statusChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+
+                <!-- Simple Business Insights -->
+                <div class="business-insights">
+                    <h3><i class="fas fa-lightbulb"></i> Business Insights</h3>
+                    <div class="insights-grid">
+                        <div class="insight-card">
+                            <div class="insight-icon">
+                                <i class="fas fa-calendar-week"></i>
+                            </div>
+                            <div class="insight-content">
+                                <h4>Best Booking Days</h4>
+                                <p id="bestBookingDays">Loading...</p>
+                            </div>
+                        </div>
+                        <div class="insight-card">
+                            <div class="insight-icon">
+                                <i class="fas fa-money-bill-wave"></i>
+                            </div>
+                            <div class="insight-content">
+                                <h4>Average Booking Value</h4>
+                                <p id="avgBookingValueInsight">Loading...</p>
+                            </div>
+                        </div>
+                        <div class="insight-card">
+                            <div class="insight-icon">
+                                <i class="fas fa-bed"></i>
+                            </div>
+                            <div class="insight-content">
+                                <h4>Most Common Group Size</h4>
+                                <p id="commonGroupSize">Loading...</p>
+                            </div>
+                        </div>
+                        <div class="insight-card">
+                            <div class="insight-icon">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="insight-content">
+                                <h4>Average Stay Duration</h4>
+                                <p id="avgStayDuration">Loading...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <!-- BOOKING Section -->
-            <section id="booking-section" class="content-section active">
+            <section id="booking-section" class="content-section">
                 <div class="section-header">
                     <h2><i class="fas fa-calendar-check"></i> Booking Management</h2>
                     <div class="section-actions">
@@ -229,7 +402,7 @@
                 <div class="section-header">
                     <h2><i class="fas fa-history"></i> Booking Records</h2>
                     <div class="section-actions">
-                        <button onclick="exportRecords()" class="btn-primary">
+                        <button onclick="showExportRecordsModal()" class="btn-primary">
                             <i class="fas fa-download"></i> Export Records
                         </button>
                     </div>
@@ -611,6 +784,60 @@
         </div>
     </div>
 
+    <!-- Export Records Modal -->
+    <div id="exportRecordsModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-download"></i> Export Records</h3>
+                <button onclick="closeExportRecordsModal()" class="close-btn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom: 20px; color: #666;">Select the date range for the records you want to export:</p>
+                <form id="exportRecordsForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="exportDateFrom">From Date *</label>
+                            <input type="date" id="exportDateFrom" name="exportDateFrom" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="exportDateTo">To Date *</label>
+                            <input type="date" id="exportDateTo" name="exportDateTo" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="exportStatus">Status Filter:</label>
+                        <select id="exportStatus" name="exportStatus">
+                            <option value="">All Status</option>
+                            <option value="pending">Pending</option>
+                            <option value="confirmed">Confirmed</option>
+                            <option value="rejected">Rejected</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="exportFormat">Export Format:</label>
+                        <select id="exportFormat" name="exportFormat">
+                            <option value="csv">CSV</option>
+                            <option value="xlsx">XLSX</option>
+                            <option value="word">WORD</option>
+                            <option value="pdf">PDF</option>
+                            <option value="png">PNG</option>
+                            <option value="jpeg">JPEG</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button onclick="closeExportRecordsModal()" class="btn-outline">Cancel</button>
+                <button onclick="confirmExportRecords()" class="btn-primary">
+                    <i class="fas fa-download"></i> Export Records
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script src="admin.js"></script>
 </body>

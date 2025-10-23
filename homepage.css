@@ -1011,6 +1011,53 @@ body {
     margin-right: 10px;
 }
 
+/* Social Media Styles */
+.social-media {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.social-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #bdc3c7;
+    text-decoration: none;
+    padding: 8px 12px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+}
+
+.social-link:hover {
+    color: white;
+    transform: translateY(-2px);
+}
+
+.social-link.facebook:hover {
+    background-color: #1877f2;
+    border-color: #1877f2;
+    box-shadow: 0 4px 12px rgba(24, 119, 242, 0.3);
+}
+
+.social-link.airbnb:hover {
+    background-color: #ff5a5f;
+    border-color: #ff5a5f;
+    box-shadow: 0 4px 12px rgba(255, 90, 95, 0.3);
+}
+
+.social-link i {
+    font-size: 18px;
+    width: 20px;
+    text-align: center;
+}
+
+.social-link span {
+    font-size: 14px;
+    font-weight: 500;
+}
+
 .footer-bottom {
     text-align: center;
     padding-top: 20px;
@@ -1108,6 +1155,32 @@ body {
     .explore-section h2,
     .about-section h2 {
         font-size: 2rem;
+    }
+
+    /* Footer Mobile Styles */
+    .footer-content {
+        grid-template-columns: 1fr;
+        gap: 20px;
+        text-align: center;
+    }
+
+    .social-media {
+        flex-direction: row;
+        justify-content: center;
+        gap: 15px;
+    }
+
+    .social-link {
+        padding: 10px 15px;
+        font-size: 14px;
+    }
+
+    .social-link span {
+        display: none;
+    }
+
+    .social-link i {
+        font-size: 20px;
     }
 }
 

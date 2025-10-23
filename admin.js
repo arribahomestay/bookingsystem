@@ -158,7 +158,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Global variables
-let currentSection = 'booking';
+let currentSection = 'analytics';
 let currentPage = 1;
 let itemsPerPage = 10;
 let allBookings = [];
@@ -629,6 +629,7 @@ function switchSection(section) {
     
     // Update page title
     const titles = {
+        'analytics': 'Analytics Dashboard',
         'booking': 'Booking Management',
         'records': 'Booking Records',
         'calendar': 'Calendar Management'
@@ -639,6 +640,9 @@ function switchSection(section) {
     
     // Load section-specific data
     switch(section) {
+        case 'analytics':
+            initializeAnalytics();
+            break;
         case 'booking':
             loadBookings();
             break;
@@ -669,6 +673,9 @@ function showSection(section) {
     
     // Load section-specific content
     switch(section) {
+        case 'analytics':
+            initializeAnalytics();
+            break;
         case 'booking':
             loadBookings();
             break;
@@ -2031,59 +2038,504 @@ function applyBulkAvailability() {
 }
 
 // Export Functions
-function exportRecords() {
+function showExportRecordsModal() {
+    document.getElementById('exportRecordsModal').style.display = 'flex';
+    
+    // Set default dates (last 30 days)
+    const today = new Date();
+    const thirtyDaysAgo = new Date(today.getTime() - (30 * 24 * 60 * 60 * 1000));
+    
+    document.getElementById('exportDateFrom').value = thirtyDaysAgo.toISOString().split('T')[0];
+    document.getElementById('exportDateTo').value = today.toISOString().split('T')[0];
+}
+
+function closeExportRecordsModal() {
+    document.getElementById('exportRecordsModal').style.display = 'none';
+    document.getElementById('exportRecordsForm').reset();
+}
+
+function confirmExportRecords() {
+    const form = document.getElementById('exportRecordsForm');
+    const formData = new FormData(form);
+    
+    const exportDateFrom = formData.get('exportDateFrom');
+    const exportDateTo = formData.get('exportDateTo');
+    const exportStatus = formData.get('exportStatus');
+    const exportFormat = formData.get('exportFormat');
+    
+    // Validate form
+    if (!exportDateFrom || !exportDateTo) {
+        alert('Please select both start and end dates');
+        return;
+    }
+    
+    if (new Date(exportDateTo) < new Date(exportDateFrom)) {
+        alert('End date must be after start date');
+        return;
+    }
+    
+    // Close modal
+    closeExportRecordsModal();
+    
+    // Export records with selected criteria
+    exportRecordsWithFilters(exportDateFrom, exportDateTo, exportStatus, exportFormat);
+}
+
+function exportRecordsWithFilters(dateFrom, dateTo, statusFilter, format) {
     try {
-        // Create CSV content
-        const headers = [
-            'Booking ID',
-            'Customer Name',
-            'Phone Number',
-            'Email',
-            'Check-in Date',
-            'Check-out Date',
-            'Adults',
-            'Kids',
-            'Extra Beds',
-            'Total Amount',
-            'Status',
-            'Created At'
-        ];
+        // Filter records based on selected criteria
+        let recordsToExport = allRecords.filter(record => {
+            // Date filter
+            const recordDate = new Date(record.createdAt);
+            const fromDate = new Date(dateFrom);
+            const toDate = new Date(dateTo);
+            
+            if (recordDate < fromDate || recordDate > toDate) {
+                return false;
+            }
+            
+            // Status filter
+            if (statusFilter && record.status !== statusFilter) {
+                return false;
+            }
+            
+            return true;
+        });
         
-        const csvContent = [
-            headers.join(','),
-            ...filteredRecords.map(record => [
-                record.id,
-                `"${record.customerName}"`,
-                record.phoneNumber,
-                record.email,
-                record.checkIn,
-                record.checkOut,
-                record.adults,
-                record.kids,
-                record.extraBeds,
-                record.totalAmount,
-                record.status,
-                record.createdAt
-            ].join(','))
-        ].join('\n');
+        if (recordsToExport.length === 0) {
+            showNotification('No records found for the selected criteria', 'info');
+            return;
+        }
         
-        // Create and download file
-        const blob = new Blob([csvContent], { type: 'text/csv' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `arriba-homestay-records-${new Date().toISOString().split('T')[0]}.csv`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
+        // Generate filename with date range
+        const fromDateStr = new Date(dateFrom).toISOString().split('T')[0];
+        const toDateStr = new Date(dateTo).toISOString().split('T')[0];
+        const statusStr = statusFilter ? `-${statusFilter}` : '';
         
-        showNotification('Records exported successfully!', 'success');
+        // Handle different export formats
+        switch(format) {
+            case 'csv':
+                exportRecordsAsCSV(recordsToExport, fromDateStr, toDateStr, statusStr);
+                break;
+            case 'xlsx':
+                exportRecordsAsXLSX(recordsToExport, fromDateStr, toDateStr, statusStr);
+                break;
+            case 'word':
+                exportRecordsAsWord(recordsToExport, fromDateStr, toDateStr, statusStr);
+                break;
+            case 'pdf':
+                exportRecordsAsPDF(recordsToExport, fromDateStr, toDateStr, statusStr);
+                break;
+            case 'png':
+                exportRecordsAsPNG(recordsToExport, fromDateStr, toDateStr, statusStr);
+                break;
+            case 'jpeg':
+                exportRecordsAsJPEG(recordsToExport, fromDateStr, toDateStr, statusStr);
+                break;
+            default:
+                exportRecordsAsCSV(recordsToExport, fromDateStr, toDateStr, statusStr);
+        }
+        
+        showNotification(`Successfully exported ${recordsToExport.length} records!`, 'success');
         
     } catch (error) {
         console.error('Error exporting records:', error);
         showNotification('Failed to export records. Please try again.', 'error');
     }
+}
+
+function exportRecordsAsCSV(records, fromDate, toDate, statusStr) {
+    // Create CSV content
+    const headers = [
+        'Booking ID',
+        'Customer Name',
+        'Phone Number',
+        'Email',
+        'Check-in Date',
+        'Check-out Date',
+        'Adults',
+        'Kids',
+        'Extra Beds',
+        'Total Amount',
+        'Status',
+        'Created At'
+    ];
+    
+    const csvContent = [
+        headers.join(','),
+        ...records.map(record => [
+            record.id,
+            `"${record.customerName}"`,
+            record.phoneNumber,
+            record.email,
+            record.checkIn,
+            record.checkOut,
+            record.adults,
+            record.kids,
+            record.extraBeds,
+            record.totalAmount,
+            record.status,
+            record.createdAt
+        ].join(','))
+    ].join('\n');
+    
+    // Create and download file
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `arriba-homestay-records-${fromDate}-to-${toDate}${statusStr}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+}
+
+function exportRecordsAsXLSX(records, fromDate, toDate, statusStr) {
+    // Create Excel-compatible CSV with proper formatting
+    const headers = [
+        'Booking ID',
+        'Customer Name',
+        'Phone Number',
+        'Email',
+        'Check-in Date',
+        'Check-out Date',
+        'Adults',
+        'Kids',
+        'Extra Beds',
+        'Total Amount',
+        'Status',
+        'Created At'
+    ];
+    
+    const csvContent = [
+        headers.join('\t'), // Use tabs for better Excel compatibility
+        ...records.map(record => [
+            record.id,
+            record.customerName,
+            record.phoneNumber,
+            record.email,
+            record.checkIn,
+            record.checkOut,
+            record.adults,
+            record.kids,
+            record.extraBeds,
+            record.totalAmount,
+            record.status,
+            record.createdAt
+        ].join('\t'))
+    ].join('\n');
+    
+    // Create and download file
+    const blob = new Blob([csvContent], { type: 'application/vnd.ms-excel' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `arriba-homestay-records-${fromDate}-to-${toDate}${statusStr}.xlsx`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+}
+
+function exportRecordsAsWord(records, fromDate, toDate, statusStr) {
+    // Create HTML content that can be opened in Word
+    const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>Arriba Homestay Records</title>
+            <style>
+                body { font-family: Arial, sans-serif; margin: 20px; }
+                h1 { color: #2c3e50; text-align: center; }
+                h2 { color: #3498db; border-bottom: 2px solid #3498db; padding-bottom: 5px; }
+                table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+                th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                th { background-color: #f2f2f2; font-weight: bold; }
+                tr:nth-child(even) { background-color: #f9f9f9; }
+                .summary { background-color: #e8f4fd; padding: 15px; border-radius: 5px; margin: 20px 0; }
+            </style>
+        </head>
+        <body>
+            <h1>Arriba Homestay - Booking Records</h1>
+            <div class="summary">
+                <h2>Export Summary</h2>
+                <p><strong>Date Range:</strong> ${fromDate} to ${toDate}</p>
+                <p><strong>Total Records:</strong> ${records.length}</p>
+                <p><strong>Export Date:</strong> ${new Date().toLocaleDateString()}</p>
+            </div>
+            <h2>Booking Records</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Booking ID</th>
+                        <th>Customer Name</th>
+                        <th>Phone Number</th>
+                        <th>Email</th>
+                        <th>Check-in Date</th>
+                        <th>Check-out Date</th>
+                        <th>Adults</th>
+                        <th>Kids</th>
+                        <th>Extra Beds</th>
+                        <th>Total Amount</th>
+                        <th>Status</th>
+                        <th>Created At</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${records.map(record => `
+                        <tr>
+                            <td>${record.id}</td>
+                            <td>${record.customerName}</td>
+                            <td>${record.phoneNumber}</td>
+                            <td>${record.email}</td>
+                            <td>${record.checkIn}</td>
+                            <td>${record.checkOut}</td>
+                            <td>${record.adults}</td>
+                            <td>${record.kids}</td>
+                            <td>${record.extraBeds}</td>
+                            <td>₱${record.totalAmount.toLocaleString()}</td>
+                            <td>${record.status}</td>
+                            <td>${new Date(record.createdAt).toLocaleDateString()}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </body>
+        </html>
+    `;
+    
+    // Create and download file
+    const blob = new Blob([htmlContent], { type: 'application/msword' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `arriba-homestay-records-${fromDate}-to-${toDate}${statusStr}.doc`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+}
+
+function exportRecordsAsPDF(records, fromDate, toDate, statusStr) {
+    // Create HTML content for PDF
+    const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>Arriba Homestay Records</title>
+            <style>
+                body { font-family: Arial, sans-serif; margin: 20px; color: #333; }
+                h1 { color: #2c3e50; text-align: center; border-bottom: 3px solid #3498db; padding-bottom: 10px; }
+                h2 { color: #3498db; border-bottom: 2px solid #3498db; padding-bottom: 5px; }
+                table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 12px; }
+                th, td { border: 1px solid #ddd; padding: 6px; text-align: left; }
+                th { background-color: #f2f2f2; font-weight: bold; }
+                tr:nth-child(even) { background-color: #f9f9f9; }
+                .summary { background-color: #e8f4fd; padding: 15px; border-radius: 5px; margin: 20px 0; }
+                .footer { margin-top: 30px; text-align: center; font-size: 10px; color: #666; }
+                @media print {
+                    body { margin: 0; }
+                    table { font-size: 10px; }
+                }
+            </style>
+        </head>
+        <body>
+            <h1>Arriba Homestay - Booking Records</h1>
+            <div class="summary">
+                <h2>Export Summary</h2>
+                <p><strong>Date Range:</strong> ${fromDate} to ${toDate}</p>
+                <p><strong>Total Records:</strong> ${records.length}</p>
+                <p><strong>Export Date:</strong> ${new Date().toLocaleDateString()}</p>
+            </div>
+            <h2>Booking Records</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Booking ID</th>
+                        <th>Customer Name</th>
+                        <th>Phone</th>
+                        <th>Email</th>
+                        <th>Check-in</th>
+                        <th>Check-out</th>
+                        <th>Adults</th>
+                        <th>Kids</th>
+                        <th>Extra Beds</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Created</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${records.map(record => `
+                        <tr>
+                            <td>${record.id}</td>
+                            <td>${record.customerName}</td>
+                            <td>${record.phoneNumber}</td>
+                            <td>${record.email}</td>
+                            <td>${record.checkIn}</td>
+                            <td>${record.checkOut}</td>
+                            <td>${record.adults}</td>
+                            <td>${record.kids}</td>
+                            <td>${record.extraBeds}</td>
+                            <td>₱${record.totalAmount.toLocaleString()}</td>
+                            <td>${record.status}</td>
+                            <td>${new Date(record.createdAt).toLocaleDateString()}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+            <div class="footer">
+                <p>Generated on ${new Date().toLocaleString()} | Arriba Homestay Management System</p>
+            </div>
+        </body>
+        </html>
+    `;
+    
+    // Create and download file
+    const blob = new Blob([htmlContent], { type: 'text/html' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `arriba-homestay-records-${fromDate}-to-${toDate}${statusStr}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+}
+
+function exportRecordsAsPNG(records, fromDate, toDate, statusStr) {
+    // Create a visual chart/table as PNG
+    createVisualExport(records, fromDate, toDate, statusStr, 'png');
+}
+
+function exportRecordsAsJPEG(records, fromDate, toDate, statusStr) {
+    // Create a visual chart/table as JPEG
+    createVisualExport(records, fromDate, toDate, statusStr, 'jpeg');
+}
+
+function createVisualExport(records, fromDate, toDate, statusStr, format) {
+    // Create a canvas element to generate the image
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    // Set canvas size
+    canvas.width = 1200;
+    canvas.height = 800;
+    
+    // Background
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Title
+    ctx.fillStyle = '#2c3e50';
+    ctx.font = 'bold 32px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('Arriba Homestay - Booking Records', canvas.width / 2, 50);
+    
+    // Subtitle
+    ctx.fillStyle = '#3498db';
+    ctx.font = '20px Arial';
+    ctx.fillText(`Date Range: ${fromDate} to ${toDate}`, canvas.width / 2, 85);
+    ctx.fillText(`Total Records: ${records.length}`, canvas.width / 2, 115);
+    
+    // Create a simple table visualization
+    const tableStartY = 150;
+    const rowHeight = 25;
+    const colWidths = [120, 150, 120, 200, 100, 100, 60, 60, 80, 100, 80, 120];
+    const headers = ['ID', 'Customer', 'Phone', 'Email', 'Check-in', 'Check-out', 'Adults', 'Kids', 'Extra', 'Amount', 'Status', 'Created'];
+    
+    // Draw table headers
+    ctx.fillStyle = '#f2f2f2';
+    ctx.fillRect(50, tableStartY, canvas.width - 100, rowHeight);
+    
+    ctx.fillStyle = '#2c3e50';
+    ctx.font = 'bold 12px Arial';
+    ctx.textAlign = 'left';
+    
+    let x = 60;
+    headers.forEach((header, index) => {
+        ctx.fillText(header, x, tableStartY + 18);
+        x += colWidths[index];
+    });
+    
+    // Draw table rows (limit to first 20 records for readability)
+    const displayRecords = records.slice(0, 20);
+    displayRecords.forEach((record, rowIndex) => {
+        const y = tableStartY + (rowIndex + 1) * rowHeight;
+        
+        // Alternate row colors
+        if (rowIndex % 2 === 0) {
+            ctx.fillStyle = '#ffffff';
+        } else {
+            ctx.fillStyle = '#f9f9f9';
+        }
+        ctx.fillRect(50, y, canvas.width - 100, rowHeight);
+        
+        // Draw row data
+        ctx.fillStyle = '#333333';
+        ctx.font = '10px Arial';
+        
+        x = 60;
+        const rowData = [
+            record.id.substring(0, 10) + '...',
+            record.customerName.substring(0, 15),
+            record.phoneNumber.substring(0, 12),
+            record.email.substring(0, 20),
+            record.checkIn.substring(0, 10),
+            record.checkOut.substring(0, 10),
+            record.adults.toString(),
+            record.kids.toString(),
+            record.extraBeds.toString(),
+            '₱' + record.totalAmount.toLocaleString(),
+            record.status,
+            new Date(record.createdAt).toLocaleDateString()
+        ];
+        
+        rowData.forEach((data, colIndex) => {
+            ctx.fillText(data, x, y + 15);
+            x += colWidths[colIndex];
+        });
+    });
+    
+    // Add note if there are more records
+    if (records.length > 20) {
+        ctx.fillStyle = '#666666';
+        ctx.font = '12px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(`... and ${records.length - 20} more records`, canvas.width / 2, tableStartY + (21 * rowHeight) + 20);
+    }
+    
+    // Footer
+    ctx.fillStyle = '#666666';
+    ctx.font = '12px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(`Generated on ${new Date().toLocaleString()}`, canvas.width / 2, canvas.height - 20);
+    
+    // Convert canvas to image and download
+    canvas.toBlob(function(blob) {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `arriba-homestay-records-${fromDate}-to-${toDate}${statusStr}.${format}`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+    }, `image/${format}`);
+}
+
+// Legacy export function (kept for compatibility)
+function exportRecords() {
+    // Default export (all records)
+    exportRecordsWithFilters(
+        new Date(0).toISOString().split('T')[0], // Start from beginning
+        new Date().toISOString().split('T')[0],  // End today
+        '', // All statuses
+        'csv' // Default format
+    );
 }
 
 // Utility Functions
@@ -2762,3 +3214,652 @@ function closeMediaModal() {
         }
     }
 }
+
+// ==================== ANALYTICS DASHBOARD FUNCTIONS ====================
+
+// Global analytics variables
+let analyticsData = {
+    bookings: [],
+    reviews: [],
+    revenue: 0,
+    totalBookings: 0,
+    occupancyRate: 0,
+    avgBookingValue: 0
+};
+
+let charts = {};
+
+// Initialize analytics dashboard
+async function initializeAnalytics() {
+    try {
+        console.log('Initializing analytics dashboard...');
+        
+        // Load analytics data
+        await loadAnalyticsData();
+        
+        // Initialize charts
+        initializeCharts();
+        
+        // Update analytics display
+        updateAnalyticsDisplay();
+        
+        console.log('Analytics dashboard initialized successfully');
+        
+    } catch (error) {
+        console.error('Error initializing analytics:', error);
+        showNotification('Error initializing analytics dashboard', 'error');
+    }
+}
+
+// Load analytics data from Firebase
+async function loadAnalyticsData() {
+    try {
+        console.log('Loading analytics data from Firebase...');
+        
+        // Load bookings data
+        const bookingsQuery = query(collection(db, 'bookings'));
+        const bookingsSnapshot = await getDocs(bookingsQuery);
+        
+        const bookings = [];
+        bookingsSnapshot.forEach((doc) => {
+            const data = doc.data();
+            bookings.push({
+                id: doc.id,
+                ...data,
+                createdAt: data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+                checkIn: data.checkIn,
+                checkOut: data.checkOut,
+                totalAmount: data.totalAmount || 0,
+                status: data.status
+            });
+        });
+        
+        // Load reviews data
+        const reviewsQuery = query(collection(db, 'reviews'));
+        const reviewsSnapshot = await getDocs(reviewsQuery);
+        
+        const reviews = [];
+        reviewsSnapshot.forEach((doc) => {
+            const data = doc.data();
+            reviews.push({
+                id: doc.id,
+                ...data,
+                submittedAt: data.submittedAt?.toDate?.()?.toISOString() || new Date().toISOString()
+            });
+        });
+        
+        // Store analytics data
+        analyticsData.bookings = bookings;
+        analyticsData.reviews = reviews;
+        
+        // Calculate analytics metrics
+        calculateAnalyticsMetrics();
+        
+        console.log('Analytics data loaded:', {
+            bookings: bookings.length,
+            reviews: reviews.length
+        });
+        
+    } catch (error) {
+        console.error('Error loading analytics data:', error);
+        throw error;
+    }
+}
+
+// Calculate analytics metrics
+function calculateAnalyticsMetrics() {
+    const { bookings } = analyticsData;
+    
+    // Calculate total revenue (only confirmed bookings)
+    const confirmedBookings = bookings.filter(booking => booking.status === 'confirmed');
+    analyticsData.revenue = confirmedBookings.reduce((sum, booking) => sum + (booking.totalAmount || 0), 0);
+    
+    // Calculate total bookings
+    analyticsData.totalBookings = bookings.length;
+    
+    // Calculate average booking value
+    analyticsData.avgBookingValue = analyticsData.totalBookings > 0 ? analyticsData.revenue / analyticsData.totalBookings : 0;
+    
+    // Calculate occupancy rate (simplified - based on confirmed bookings vs total capacity)
+    // This is a simplified calculation - in a real system, you'd calculate based on actual room capacity
+    const totalCapacity = 365; // Assuming 365 days of capacity per year
+    const bookedDays = confirmedBookings.reduce((sum, booking) => {
+        const checkIn = new Date(booking.checkIn);
+        const checkOut = new Date(booking.checkOut);
+        const days = Math.ceil((checkOut - checkIn) / (1000 * 3600 * 24));
+        return sum + days;
+    }, 0);
+    
+    analyticsData.occupancyRate = totalCapacity > 0 ? (bookedDays / totalCapacity) * 100 : 0;
+    
+    console.log('Analytics metrics calculated:', {
+        revenue: analyticsData.revenue,
+        totalBookings: analyticsData.totalBookings,
+        avgBookingValue: analyticsData.avgBookingValue,
+        occupancyRate: analyticsData.occupancyRate
+    });
+}
+
+// Initialize charts
+function initializeCharts() {
+    try {
+        // Initialize simple charts
+        initializeRevenueChart();
+        initializeBookingsChart();
+        initializeStatusChart();
+        
+        // Calculate business insights
+        calculateBusinessInsights();
+        
+        console.log('Charts initialized successfully');
+        
+    } catch (error) {
+        console.error('Error initializing charts:', error);
+    }
+}
+
+// Initialize revenue chart
+function initializeRevenueChart() {
+    const ctx = document.getElementById('revenueChart');
+    if (!ctx) return;
+    
+    const { bookings } = analyticsData;
+    const revenueData = calculateRevenueByPeriod(bookings);
+    
+    charts.revenue = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: revenueData.labels,
+            datasets: [{
+                label: 'Revenue (₱)',
+                data: revenueData.values,
+                borderColor: '#10b981',
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            aspectRatio: 2,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '₱' + value.toLocaleString();
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Initialize bookings chart
+function initializeBookingsChart() {
+    const ctx = document.getElementById('bookingsChart');
+    if (!ctx) return;
+    
+    const { bookings } = analyticsData;
+    const bookingsData = calculateBookingsByPeriod(bookings);
+    
+    charts.bookings = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: bookingsData.labels,
+            datasets: [{
+                label: 'Bookings',
+                data: bookingsData.values,
+                backgroundColor: '#f59e0b',
+                borderColor: '#d97706',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            aspectRatio: 2,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+}
+
+// Initialize demographics charts
+function initializeDemographicsCharts() {
+    // Age groups chart (mock data since we don't collect age)
+    const ageCtx = document.getElementById('ageGroupChart');
+    if (ageCtx) {
+        charts.ageGroup = new Chart(ageCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['18-25', '26-35', '36-45', '46-55', '55+'],
+                datasets: [{
+                    data: [20, 35, 25, 15, 5],
+                    backgroundColor: [
+                        '#3b82f6',
+                        '#10b981',
+                        '#f59e0b',
+                        '#ef4444',
+                        '#8b5cf6'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+    }
+    
+    // Booking sources chart (mock data)
+    const sourceCtx = document.getElementById('bookingSourceChart');
+    if (sourceCtx) {
+        charts.bookingSource = new Chart(sourceCtx, {
+            type: 'pie',
+            data: {
+                labels: ['Website', 'Social Media', 'Referral', 'Direct'],
+                datasets: [{
+                    data: [45, 30, 15, 10],
+                    backgroundColor: [
+                        '#3b82f6',
+                        '#10b981',
+                        '#f59e0b',
+                        '#ef4444'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+    }
+}
+
+// Initialize status distribution chart
+function initializeStatusChart() {
+    const ctx = document.getElementById('statusChart');
+    if (!ctx) return;
+    
+    const { bookings } = analyticsData;
+    const statusData = calculateStatusDistribution(bookings);
+    
+    charts.status = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: statusData.labels,
+            datasets: [{
+                data: statusData.values,
+                backgroundColor: [
+                    '#f59e0b', // Pending
+                    '#10b981', // Confirmed
+                    '#ef4444'  // Rejected
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            aspectRatio: 1,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+}
+
+// Calculate business insights
+function calculateBusinessInsights() {
+    try {
+        const bookings = analyticsData.bookings || [];
+        
+        if (bookings.length === 0) {
+            // Show loading or no data message
+            document.getElementById('bestBookingDays').textContent = 'No data available';
+            document.getElementById('avgBookingValueInsight').textContent = 'No data available';
+            document.getElementById('commonGroupSize').textContent = 'No data available';
+            document.getElementById('avgStayDuration').textContent = 'No data available';
+            return;
+        }
+        
+        // Calculate best booking days (most bookings per day of week)
+        const dayCounts = {};
+        bookings.forEach(booking => {
+            const date = new Date(booking.createdAt);
+            const dayName = date.toLocaleDateString('en-US', { weekday: 'long' });
+            dayCounts[dayName] = (dayCounts[dayName] || 0) + 1;
+        });
+        
+        const bestDay = Object.keys(dayCounts).reduce((a, b) => dayCounts[a] > dayCounts[b] ? a : b);
+        document.getElementById('bestBookingDays').textContent = bestDay;
+        
+        // Calculate average booking value
+        const totalRevenue = bookings.reduce((sum, booking) => sum + (booking.totalAmount || 0), 0);
+        const avgValue = bookings.length > 0 ? Math.round(totalRevenue / bookings.length) : 0;
+        document.getElementById('avgBookingValueInsight').textContent = `₱${avgValue.toLocaleString()}`;
+        
+        // Calculate most common group size
+        const groupSizes = {};
+        bookings.forEach(booking => {
+            const totalGuests = (booking.adults || 0) + (booking.kids || 0);
+            groupSizes[totalGuests] = (groupSizes[totalGuests] || 0) + 1;
+        });
+        
+        const commonGroupSize = Object.keys(groupSizes).reduce((a, b) => groupSizes[a] > groupSizes[b] ? a : b);
+        document.getElementById('commonGroupSize').textContent = `${commonGroupSize} guests`;
+        
+        // Calculate average stay duration
+        let totalNights = 0;
+        let validBookings = 0;
+        
+        bookings.forEach(booking => {
+            if (booking.checkIn && booking.checkOut) {
+                const checkIn = new Date(booking.checkIn);
+                const checkOut = new Date(booking.checkOut);
+                const nights = Math.ceil((checkOut - checkIn) / (1000 * 60 * 60 * 24));
+                if (nights > 0) {
+                    totalNights += nights;
+                    validBookings++;
+                }
+            }
+        });
+        
+        const avgNights = validBookings > 0 ? Math.round(totalNights / validBookings) : 0;
+        document.getElementById('avgStayDuration').textContent = `${avgNights} nights`;
+        
+        console.log('Business insights calculated successfully');
+        
+    } catch (error) {
+        console.error('Error calculating business insights:', error);
+        document.getElementById('bestBookingDays').textContent = 'Error loading';
+        document.getElementById('avgBookingValueInsight').textContent = 'Error loading';
+        document.getElementById('commonGroupSize').textContent = 'Error loading';
+        document.getElementById('avgStayDuration').textContent = 'Error loading';
+    }
+}
+
+// Calculate revenue by period
+function calculateRevenueByPeriod(bookings) {
+    const period = document.getElementById('analyticsPeriod')?.value || 'daily';
+    const dateRange = document.getElementById('analyticsDateRange')?.value || '30';
+    
+    const confirmedBookings = bookings.filter(booking => booking.status === 'confirmed');
+    const now = new Date();
+    const startDate = new Date(now.getTime() - (parseInt(dateRange) * 24 * 60 * 60 * 1000));
+    
+    const revenueMap = new Map();
+    
+    confirmedBookings.forEach(booking => {
+        const bookingDate = new Date(booking.createdAt);
+        if (bookingDate >= startDate) {
+            let key;
+            if (period === 'daily') {
+                key = bookingDate.toISOString().split('T')[0];
+            } else if (period === 'weekly') {
+                const weekStart = new Date(bookingDate);
+                weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+                key = weekStart.toISOString().split('T')[0];
+            } else if (period === 'monthly') {
+                key = `${bookingDate.getFullYear()}-${String(bookingDate.getMonth() + 1).padStart(2, '0')}`;
+            }
+            
+            const currentRevenue = revenueMap.get(key) || 0;
+            revenueMap.set(key, currentRevenue + (booking.totalAmount || 0));
+        }
+    });
+    
+    const labels = Array.from(revenueMap.keys()).sort();
+    const values = labels.map(label => revenueMap.get(label));
+    
+    return { labels, values };
+}
+
+// Calculate bookings by period
+function calculateBookingsByPeriod(bookings) {
+    const period = document.getElementById('analyticsPeriod')?.value || 'daily';
+    const dateRange = document.getElementById('analyticsDateRange')?.value || '30';
+    
+    const now = new Date();
+    const startDate = new Date(now.getTime() - (parseInt(dateRange) * 24 * 60 * 60 * 1000));
+    
+    const bookingsMap = new Map();
+    
+    bookings.forEach(booking => {
+        const bookingDate = new Date(booking.createdAt);
+        if (bookingDate >= startDate) {
+            let key;
+            if (period === 'daily') {
+                key = bookingDate.toISOString().split('T')[0];
+            } else if (period === 'weekly') {
+                const weekStart = new Date(bookingDate);
+                weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+                key = weekStart.toISOString().split('T')[0];
+            } else if (period === 'monthly') {
+                key = `${bookingDate.getFullYear()}-${String(bookingDate.getMonth() + 1).padStart(2, '0')}`;
+            }
+            
+            const currentCount = bookingsMap.get(key) || 0;
+            bookingsMap.set(key, currentCount + 1);
+        }
+    });
+    
+    const labels = Array.from(bookingsMap.keys()).sort();
+    const values = labels.map(label => bookingsMap.get(label));
+    
+    return { labels, values };
+}
+
+// Calculate status distribution
+function calculateStatusDistribution(bookings) {
+    const statusCounts = {
+        pending: 0,
+        confirmed: 0,
+        rejected: 0
+    };
+    
+    bookings.forEach(booking => {
+        if (statusCounts.hasOwnProperty(booking.status)) {
+            statusCounts[booking.status]++;
+        }
+    });
+    
+    return {
+        labels: ['Pending', 'Confirmed', 'Rejected'],
+        values: [statusCounts.pending, statusCounts.confirmed, statusCounts.rejected]
+    };
+}
+
+// Update analytics display
+function updateAnalyticsDisplay() {
+    try {
+        // Update analytics cards
+        document.getElementById('totalRevenue').textContent = `₱${analyticsData.revenue.toLocaleString()}`;
+        document.getElementById('totalBookings').textContent = analyticsData.totalBookings.toString();
+        document.getElementById('occupancyRate').textContent = `${analyticsData.occupancyRate.toFixed(1)}%`;
+        document.getElementById('avgBookingValue').textContent = `₱${analyticsData.avgBookingValue.toLocaleString()}`;
+        
+        // Update popular dates
+        updatePopularDates();
+        
+        console.log('Analytics display updated');
+        
+    } catch (error) {
+        console.error('Error updating analytics display:', error);
+    }
+}
+
+// Update popular dates
+function updatePopularDates() {
+    const { bookings } = analyticsData;
+    const popularDatesGrid = document.getElementById('popularDatesGrid');
+    if (!popularDatesGrid) return;
+    
+    // Calculate popular booking dates (check-in dates)
+    const dateCounts = new Map();
+    
+    bookings.forEach(booking => {
+        const checkInDate = new Date(booking.checkIn);
+        const dateKey = checkInDate.toISOString().split('T')[0];
+        const count = dateCounts.get(dateKey) || 0;
+        dateCounts.set(dateKey, count + 1);
+    });
+    
+    // Sort by count and get top 6
+    const sortedDates = Array.from(dateCounts.entries())
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 6);
+    
+    if (sortedDates.length === 0) {
+        popularDatesGrid.innerHTML = '<div class="analytics-no-data"><i class="fas fa-calendar"></i><h4>No Popular Dates</h4><p>No booking data available</p></div>';
+        return;
+    }
+    
+    popularDatesGrid.innerHTML = sortedDates.map(([date, count]) => {
+        const formattedDate = new Date(date).toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric'
+        });
+        
+        return `
+            <div class="popular-date-item">
+                <div class="date">${formattedDate}</div>
+                <div class="count">${count}</div>
+                <div class="period">bookings</div>
+            </div>
+        `;
+    }).join('');
+}
+
+// Refresh analytics data
+window.refreshAnalytics = async function() {
+    try {
+        console.log('Refreshing analytics data...');
+        
+        // Show loading state
+        showAnalyticsLoading();
+        
+        // Reload data
+        await loadAnalyticsData();
+        
+        // Update charts
+        updateCharts();
+        
+        // Update display
+        updateAnalyticsDisplay();
+        
+        // Hide loading state
+        hideAnalyticsLoading();
+        
+        showNotification('Analytics data refreshed successfully', 'success');
+        
+    } catch (error) {
+        console.error('Error refreshing analytics:', error);
+        showNotification('Error refreshing analytics data', 'error');
+        hideAnalyticsLoading();
+    }
+};
+
+// Update analytics when filters change
+window.updateAnalytics = function() {
+    try {
+        console.log('Updating analytics with new filters...');
+        
+        // Update charts with new data
+        updateCharts();
+        
+        // Update business insights
+        calculateBusinessInsights();
+        
+        console.log('Analytics updated with new filters');
+        
+    } catch (error) {
+        console.error('Error updating analytics:', error);
+    }
+};
+
+// Update charts with new data
+function updateCharts() {
+    const { bookings } = analyticsData;
+    
+    // Update revenue chart
+    if (charts.revenue) {
+        const revenueData = calculateRevenueByPeriod(bookings);
+        charts.revenue.data.labels = revenueData.labels;
+        charts.revenue.data.datasets[0].data = revenueData.values;
+        charts.revenue.update();
+    }
+    
+    // Update bookings chart
+    if (charts.bookings) {
+        const bookingsData = calculateBookingsByPeriod(bookings);
+        charts.bookings.data.labels = bookingsData.labels;
+        charts.bookings.data.datasets[0].data = bookingsData.values;
+        charts.bookings.update();
+    }
+    
+    // Update status chart
+    if (charts.status) {
+        const statusData = calculateStatusDistribution(bookings);
+        charts.status.data.labels = statusData.labels;
+        charts.status.data.datasets[0].data = statusData.values;
+        charts.status.update();
+    }
+}
+
+// Show analytics loading state
+function showAnalyticsLoading() {
+    const loadingElements = document.querySelectorAll('.analytics-loading');
+    loadingElements.forEach(element => {
+        element.style.display = 'flex';
+    });
+}
+
+// Hide analytics loading state
+function hideAnalyticsLoading() {
+    const loadingElements = document.querySelectorAll('.analytics-loading');
+    loadingElements.forEach(element => {
+        element.style.display = 'none';
+    });
+}
+
+// Update page title for analytics section
+function updatePageTitleForAnalytics() {
+    const pageTitle = document.getElementById('pageTitle');
+    if (pageTitle) {
+        pageTitle.textContent = 'Analytics Dashboard';
+    }
+}
+
+// Make analytics functions globally available
+window.initializeAnalytics = initializeAnalytics;
+window.refreshAnalytics = refreshAnalytics;
+window.updateAnalytics = updateAnalytics;
