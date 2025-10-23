@@ -34,6 +34,28 @@
         </div>
     </nav>
 
+    <!-- Floating Weather Widget -->
+    <div class="floating-weather-widget" id="weatherWidget">
+        <div class="weather-header" onclick="toggleWeatherWidget()">
+            <div class="weather-compact" id="weatherCompact">
+                <i class="fas fa-cloud-sun"></i>
+                <span class="weather-temp-compact" id="weatherTempCompact">--°C</span>
+            </div>
+            <button onclick="event.stopPropagation(); initializeWeatherWidget()" class="weather-refresh-btn" title="Refresh Weather">
+                <i class="fas fa-sync-alt"></i>
+            </button>
+            <button class="weather-toggle-btn" title="Expand/Collapse">
+                <i class="fas fa-chevron-down" id="weatherToggleIcon"></i>
+            </button>
+        </div>
+        <div class="weather-content" id="weatherContent" style="display: none;">
+            <div class="weather-loading">
+                <i class="fas fa-spinner fa-spin"></i>
+                <span>Loading...</span>
+            </div>
+        </div>
+    </div>
+
     <!-- Hero Section -->
     <section id="home" class="hero">
         <div class="hero-content">
@@ -157,7 +179,7 @@
                         </div>
                         <div class="contact-item">
                             <i class="fas fa-envelope"></i>
-                            <span>rubiairbnb1@gmail.com</span>
+                            <span>rubibella939@gmail.com</span>
                         </div>
                         <div class="contact-item">
                             <i class="fas fa-map-marker-alt"></i>
@@ -200,7 +222,7 @@
                     <h4>Contact</h4>
                     <div class="contact-info">
                         <p><i class="fas fa-phone"></i> +63 919 002 7790</p>
-                        <p><i class="fas fa-envelope"></i> rubiairbnb1@gmail.com</p>
+                        <p><i class="fas fa-envelope"></i> rubibella939@gmail.com</p>
                     </div>
                 </div>
                 <div class="footer-section">

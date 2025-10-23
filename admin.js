@@ -2145,50 +2145,50 @@ function exportRecordsWithFilters(dateFrom, dateTo, statusFilter, format) {
 }
 
 function exportRecordsAsCSV(records, fromDate, toDate, statusStr) {
-    // Create CSV content
-    const headers = [
-        'Booking ID',
-        'Customer Name',
-        'Phone Number',
-        'Email',
-        'Check-in Date',
-        'Check-out Date',
+        // Create CSV content
+        const headers = [
+            'Booking ID',
+            'Customer Name',
+            'Phone Number',
+            'Email',
+            'Check-in Date',
+            'Check-out Date',
         'Adults',
         'Kids',
-        'Extra Beds',
-        'Total Amount',
-        'Status',
-        'Created At'
-    ];
-    
-    const csvContent = [
-        headers.join(','),
+            'Extra Beds',
+            'Total Amount',
+            'Status',
+            'Created At'
+        ];
+        
+        const csvContent = [
+            headers.join(','),
         ...records.map(record => [
-            record.id,
-            `"${record.customerName}"`,
-            record.phoneNumber,
-            record.email,
-            record.checkIn,
-            record.checkOut,
+                record.id,
+                `"${record.customerName}"`,
+                record.phoneNumber,
+                record.email,
+                record.checkIn,
+                record.checkOut,
             record.adults,
             record.kids,
-            record.extraBeds,
-            record.totalAmount,
-            record.status,
-            record.createdAt
-        ].join(','))
-    ].join('\n');
-    
-    // Create and download file
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
+                record.extraBeds,
+                record.totalAmount,
+                record.status,
+                record.createdAt
+            ].join(','))
+        ].join('\n');
+        
+        // Create and download file
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
     a.download = `arriba-homestay-records-${fromDate}-to-${toDate}${statusStr}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    window.URL.revokeObjectURL(url);
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
 }
 
 function exportRecordsAsXLSX(records, fromDate, toDate, statusStr) {

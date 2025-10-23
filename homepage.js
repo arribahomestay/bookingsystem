@@ -25,7 +25,123 @@ document.addEventListener('DOMContentLoaded', function() {
             navToggle.classList.remove('active');
         }
     });
+
+    // Initialize weather widget
+    initializeWeatherWidget();
 });
+
+// Weather Widget Functionality
+function initializeWeatherWidget() {
+    const API_KEY = '040dfb484d82b8a6e81cdab825242a52';
+    const CITY = 'Dapa,PH'; // Primary location for Siargao
+    
+    // Show loading state
+    const weatherContent = document.getElementById('weatherContent');
+    weatherContent.innerHTML = `
+        <div class="weather-loading">
+            <i class="fas fa-spinner fa-spin"></i>
+            <span>Loading weather...</span>
+        </div>
+    `;
+    
+    console.log(`Fetching real-time weather for: ${CITY}`);
+    
+    fetch(`https://api.openweathermap.org/data/2.5/weather?q=${CITY}&appid=${API_KEY}&units=metric`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data && data.cod === 200) {
+                console.log(`Successfully fetched real-time weather for: ${CITY}`);
+                displayWeather(data);
+            } else {
+                console.error('Weather API error:', data.message);
+                displayWeatherError();
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching weather:', error);
+            displayWeatherError();
+        });
+}
+
+function displayWeather(data) {
+    const weatherContent = document.getElementById('weatherContent');
+    const weatherTempCompact = document.getElementById('weatherTempCompact');
+    
+    // Update compact temperature display
+    weatherTempCompact.textContent = `${Math.round(data.main.temp)}°C`;
+    
+    // Get weather icon
+    const iconCode = data.weather[0].icon;
+    const iconUrl = `https://openweathermap.org/img/wn/${iconCode}@2x.png`;
+    
+    // Get weather description
+    const description = data.weather[0].description;
+    const capitalizedDescription = description.charAt(0).toUpperCase() + description.slice(1);
+    
+    weatherContent.innerHTML = `
+        <div class="weather-main">
+            <div class="weather-temp">${Math.round(data.main.temp)}°C</div>
+            <img src="${iconUrl}" alt="${description}" class="weather-icon">
+        </div>
+        <div class="weather-details">
+            <div class="weather-detail">
+                <i class="fas fa-eye"></i>
+                <span>${capitalizedDescription}</span>
+            </div>
+            <div class="weather-detail">
+                <i class="fas fa-tint"></i>
+                <span>${data.main.humidity}%</span>
+            </div>
+            <div class="weather-detail">
+                <i class="fas fa-wind"></i>
+                <span>${data.wind.speed} m/s</span>
+            </div>
+            <div class="weather-detail">
+                <i class="fas fa-thermometer-half"></i>
+                <span>Feels like ${Math.round(data.main.feels_like)}°C</span>
+            </div>
+        </div>
+        <div class="weather-location">
+            <i class="fas fa-map-marker-alt"></i>
+            <span>Dapa, General Luna, Siargao</span>
+        </div>
+    `;
+}
+
+function displayWeatherError() {
+    const weatherContent = document.getElementById('weatherContent');
+    weatherContent.innerHTML = `
+        <div class="weather-error">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span>Unable to load weather data</span>
+            <div style="margin-top: 10px; font-size: 12px; color: #7f8c8d;">
+                <i class="fas fa-refresh"></i>
+                <span>Please refresh the page to try again</span>
+            </div>
+        </div>
+    `;
+}
+
+// Toggle weather widget between compact and expanded view
+function toggleWeatherWidget() {
+    const weatherContent = document.getElementById('weatherContent');
+    const weatherToggleIcon = document.getElementById('weatherToggleIcon');
+    
+    if (weatherContent.style.display === 'none') {
+        // Expand
+        weatherContent.style.display = 'block';
+        weatherToggleIcon.style.transform = 'rotate(180deg)';
+    } else {
+        // Collapse
+        weatherContent.style.display = 'none';
+        weatherToggleIcon.style.transform = 'rotate(0deg)';
+    }
+}
 
 // Smooth scrolling for navigation links
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
