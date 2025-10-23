@@ -1054,9 +1054,12 @@ body {
     }
 
     .hero {
-        flex-direction: column;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         text-align: center;
         padding: 120px 20px 50px;
+        min-height: 100vh;
     }
     
     .hero::before {
