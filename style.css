@@ -130,16 +130,61 @@
     font-size: 1.1rem;
 }
 
+/* Burger Menu Toggle */
+.nav-toggle {
+    display: none;
+    flex-direction: column;
+    cursor: pointer;
+}
+
+.bar {
+    width: 25px;
+    height: 3px;
+    background: #2c3e50;
+    margin: 3px 0;
+    transition: 0.3s;
+}
+
 @media (max-width: 768px) {
     .nav-container {
-        flex-direction: column;
-        gap: 15px;
-        height: auto;
-        padding: 15px 20px;
+        flex-direction: row;
+        justify-content: space-between;
+        height: 70px;
+        padding: 0 20px;
     }
     
     .nav-links {
+        position: fixed;
+        left: -100%;
+        top: 70px;
+        flex-direction: column;
+        background-color: white;
+        width: 100%;
+        text-align: center;
+        transition: 0.3s;
+        box-shadow: 0 10px 27px rgba(0, 0, 0, 0.05);
+        padding: 20px 0;
         gap: 20px;
+    }
+
+    .nav-links.active {
+        left: 0;
+    }
+
+    .nav-toggle {
+        display: flex;
+    }
+
+    .nav-toggle.active .bar:nth-child(2) {
+        opacity: 0;
+    }
+
+    .nav-toggle.active .bar:nth-child(1) {
+        transform: translateY(8px) rotate(45deg);
+    }
+
+    .nav-toggle.active .bar:nth-child(3) {
+        transform: translateY(-8px) rotate(-45deg);
     }
     
     .nav-link {
