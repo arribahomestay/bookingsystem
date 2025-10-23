@@ -632,7 +632,8 @@ function switchSection(section) {
         'analytics': 'Analytics Dashboard',
         'booking': 'Booking Management',
         'records': 'Booking Records',
-        'calendar': 'Calendar Management'
+        'calendar': 'Calendar Management',
+        'suggestions': 'Customer Suggestions'
     };
     document.getElementById('pageTitle').textContent = titles[section];
     
@@ -651,6 +652,9 @@ function switchSection(section) {
             break;
         case 'calendar':
             generateCalendar();
+            break;
+        case 'suggestions':
+            loadSuggestions();
             break;
     }
 }
@@ -3858,6 +3862,235 @@ function updatePageTitleForAnalytics() {
         pageTitle.textContent = 'Analytics Dashboard';
     }
 }
+
+// Suggestions Management Functions
+function loadSuggestions() {
+    console.log('Loading suggestions...');
+    
+    const tableBody = document.getElementById('suggestionsTableBody');
+    const loadingDiv = document.getElementById('suggestionsLoading');
+    const noDataDiv = document.getElementById('noSuggestionsMessage');
+    
+    // Show loading state
+    loadingDiv.style.display = 'block';
+    noDataDiv.style.display = 'none';
+    tableBody.innerHTML = '';
+    
+    // Import Firestore functions
+    import('https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js')
+        .then(({ collection, query, orderBy, onSnapshot }) => {
+            // Create real-time listener for suggestions
+            const suggestionsRef = collection(db, 'suggestions');
+            const suggestionsQuery = query(suggestionsRef, orderBy('submittedAt', 'desc'));
+            
+            // Set up real-time listener
+            const unsubscribe = onSnapshot(suggestionsQuery, (snapshot) => {
+                console.log('Suggestions updated:', snapshot.size, 'documents');
+                
+                // Hide loading state
+                loadingDiv.style.display = 'none';
+                
+                // Clear existing table content
+                tableBody.innerHTML = '';
+                
+                if (snapshot.empty) {
+                    noDataDiv.style.display = 'block';
+                    return;
+                }
+                
+                noDataDiv.style.display = 'none';
+                
+                // Add each suggestion to the table
+                snapshot.forEach(doc => {
+                    const suggestion = doc.data();
+                    suggestion.id = doc.id;
+                    addSuggestionToTable(suggestion);
+                });
+            }, (error) => {
+                console.error('Error loading suggestions:', error);
+                loadingDiv.style.display = 'none';
+                showNotification('Error loading suggestions', 'error');
+            });
+            
+            // Store unsubscribe function for cleanup
+            window.suggestionsUnsubscribe = unsubscribe;
+        })
+        .catch(error => {
+            console.error('Error importing Firestore:', error);
+            loadingDiv.style.display = 'none';
+            showNotification('Error loading suggestions', 'error');
+        });
+}
+
+function addSuggestionToTable(suggestion) {
+    const tableBody = document.getElementById('suggestionsTableBody');
+    const row = document.createElement('tr');
+    
+    const submittedDate = new Date(suggestion.submittedAt);
+    const formattedDate = submittedDate.toLocaleDateString() + ' ' + submittedDate.toLocaleTimeString();
+    
+    row.innerHTML = `
+        <td>${suggestion.name}</td>
+        <td>${suggestion.email}</td>
+        <td>${suggestion.subject}</td>
+        <td class="message-cell">
+            <div class="message-preview" onclick="event.stopPropagation(); showSuggestionModal('${suggestion.id}')">
+                ${suggestion.message.length > 50 ? suggestion.message.substring(0, 50) + '...' : suggestion.message}
+            </div>
+        </td>
+        <td>${formattedDate}</td>
+        <td>
+            <button onclick="event.stopPropagation(); showSuggestionModal('${suggestion.id}')" class="action-btn view-btn" title="View Details">
+                <i class="fas fa-eye"></i>
+            </button>
+            <button onclick="event.stopPropagation(); deleteSuggestion('${suggestion.id}')" class="action-btn delete-btn" title="Delete">
+                <i class="fas fa-trash"></i>
+            </button>
+        </td>
+    `;
+    
+    // Make the entire row clickable on mobile
+    row.onclick = function(event) {
+        // Don't trigger if clicking on buttons or message preview
+        if (event.target.closest('.action-btn') || event.target.closest('.message-preview')) {
+            return;
+        }
+        showSuggestionModal(suggestion.id);
+    };
+    
+    tableBody.appendChild(row);
+}
+
+async function showSuggestionModal(suggestionId) {
+    try {
+        // Import Firestore functions
+        const { doc, getDoc } = await import('https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js');
+        
+        // Get suggestion data from Firebase
+        const suggestionRef = doc(db, 'suggestions', suggestionId);
+        const docSnap = await getDoc(suggestionRef);
+        
+        if (docSnap.exists()) {
+            const suggestion = docSnap.data();
+            suggestion.id = docSnap.id;
+            
+            const submittedDate = new Date(suggestion.submittedAt);
+            const formattedDate = submittedDate.toLocaleDateString() + ' ' + submittedDate.toLocaleTimeString();
+            
+            // Create modal content
+            const modalContent = `
+                <div class="suggestion-details">
+                    <div class="detail-row">
+                        <label>Name:</label>
+                        <span>${suggestion.name}</span>
+                    </div>
+                    <div class="detail-row">
+                        <label>Email:</label>
+                        <span>${suggestion.email}</span>
+                    </div>
+                    <div class="detail-row">
+                        <label>Subject:</label>
+                        <span>${suggestion.subject}</span>
+                    </div>
+                    <div class="detail-row">
+                        <label>Date:</label>
+                        <span>${formattedDate}</span>
+                    </div>
+                    <div class="detail-row full-width">
+                        <label>Message:</label>
+                        <div class="message-content">${suggestion.message}</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button onclick="deleteSuggestion('${suggestion.id}')" class="btn-secondary">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                    <button onclick="closeModal()" class="btn-primary">
+                        <i class="fas fa-times"></i> Close
+                    </button>
+                </div>
+            `;
+            
+            showSuggestionDetailsModal(modalContent);
+        } else {
+            showNotification('Suggestion not found', 'error');
+        }
+        
+    } catch (error) {
+        console.error('Error loading suggestion:', error);
+        showNotification('Error loading suggestion details', 'error');
+    }
+}
+
+
+async function deleteSuggestion(suggestionId) {
+    if (confirm('Are you sure you want to delete this suggestion?')) {
+        try {
+            // Import Firestore functions
+            const { doc, deleteDoc } = await import('https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js');
+            
+            // Delete suggestion
+            const suggestionRef = doc(db, 'suggestions', suggestionId);
+            await deleteDoc(suggestionRef);
+            
+            showNotification('Suggestion deleted successfully', 'success');
+            closeModal();
+            // No need to refresh - real-time listener will update automatically
+            
+        } catch (error) {
+            console.error('Error deleting suggestion:', error);
+            showNotification('Error deleting suggestion', 'error');
+        }
+    }
+}
+
+function refreshSuggestions() {
+    loadSuggestions();
+    showNotification('Suggestions refreshed', 'success');
+}
+
+function filterSuggestions() {
+    // This function can be expanded to filter suggestions based on status and date range
+    loadSuggestions();
+}
+
+// Modal functions for suggestions
+function showSuggestionDetailsModal(content) {
+    // Create modal overlay
+    const modalOverlay = document.createElement('div');
+    modalOverlay.className = 'modal-overlay';
+    modalOverlay.innerHTML = `
+        <div class="modal-content suggestion-modal">
+            <div class="modal-header">
+                <h3>Customer Suggestion Details</h3>
+                <button class="close-modal" onclick="closeSuggestionModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                ${content}
+            </div>
+        </div>
+    `;
+    
+    // Add to body
+    document.body.appendChild(modalOverlay);
+    
+    // Close on overlay click
+    modalOverlay.addEventListener('click', function(e) {
+        if (e.target === modalOverlay) {
+            closeSuggestionModal();
+        }
+    });
+}
+
+function closeSuggestionModal() {
+    const modalOverlay = document.querySelector('.modal-overlay');
+    if (modalOverlay) {
+        modalOverlay.remove();
+    }
+}
+
+// Global close modal function
+window.closeModal = closeSuggestionModal;
 
 // Make analytics functions globally available
 window.initializeAnalytics = initializeAnalytics;

@@ -206,6 +206,311 @@ button:has(.fa-refresh) {
     display: none !important;
 }
 
+/* Suggestions Section Styles */
+.suggestions-section {
+    position: relative;
+}
+
+.suggestions-header {
+    position: sticky;
+    top: 0;
+    background: white;
+    z-index: 100;
+    padding: 20px 0;
+    border-bottom: 1px solid #e5e7eb;
+    margin-bottom: 20px;
+}
+
+.table-container {
+    width: 100%;
+    overflow-x: auto;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.admin-table {
+    width: 100%;
+    table-layout: fixed;
+}
+
+.admin-table th,
+.admin-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.admin-table th:nth-child(1) { width: 15%; } /* Name */
+.admin-table th:nth-child(2) { width: 20%; } /* Email */
+.admin-table th:nth-child(3) { width: 15%; } /* Subject */
+.admin-table th:nth-child(4) { width: 25%; } /* Message */
+.admin-table th:nth-child(5) { width: 15%; } /* Date */
+.admin-table th:nth-child(6) { width: 10%; } /* Actions */
+
+.message-cell {
+    max-width: 100%;
+    word-wrap: break-word;
+}
+
+.message-preview {
+    cursor: pointer;
+    color: #3498db;
+    text-decoration: underline;
+    padding: 5px;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+}
+
+.message-preview:hover {
+    background-color: #f8f9fa;
+}
+
+.suggestion-details {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.detail-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.detail-row.full-width {
+    flex-direction: column;
+    gap: 8px;
+}
+
+.detail-row label {
+    font-weight: 600;
+    color: #2c3e50;
+    min-width: 80px;
+}
+
+.detail-row span {
+    color: #34495e;
+    flex: 1;
+}
+
+.message-content {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    border-left: 4px solid #3498db;
+    margin-top: 5px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+}
+
+.status-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.status-badge.new {
+    background: #e3f2fd;
+    color: #1976d2;
+}
+
+.status-badge.read {
+    background: #e8f5e8;
+    color: #2e7d32;
+}
+
+.status-badge.replied {
+    background: #fff3e0;
+    color: #f57c00;
+}
+
+/* Modal Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 12px;
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.modal-header h3 {
+    margin: 0;
+    color: #2c3e50;
+    font-size: 1.25rem;
+}
+
+.close-modal {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #7f8c8d;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.close-modal:hover {
+    background: #f8f9fa;
+    color: #2c3e50;
+}
+
+.modal-body {
+    padding: 24px;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 20px 24px;
+    border-top: 1px solid #e5e7eb;
+    background: #f8f9fa;
+}
+
+/* Suggestions Mobile Styles */
+@media (max-width: 768px) {
+    .table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .admin-table {
+        width: 100%;
+        min-width: 600px; /* Ensure table doesn't get too cramped */
+        table-layout: auto;
+    }
+    
+    .admin-table th,
+    .admin-table td {
+        padding: 8px 6px;
+        font-size: 12px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    /* Mobile column widths */
+    .admin-table th:nth-child(1),
+    .admin-table td:nth-child(1) { width: 15%; } /* Name */
+    .admin-table th:nth-child(2),
+    .admin-table td:nth-child(2) { width: 25%; } /* Email */
+    .admin-table th:nth-child(3),
+    .admin-table td:nth-child(3) { width: 15%; } /* Subject */
+    .admin-table th:nth-child(4),
+    .admin-table td:nth-child(4) { width: 30%; } /* Message */
+    .admin-table th:nth-child(5),
+    .admin-table td:nth-child(5) { width: 10%; } /* Date */
+    .admin-table th:nth-child(6),
+    .admin-table td:nth-child(6) { width: 5%; } /* Actions */
+    
+    .message-cell {
+        max-width: 100%;
+    }
+    
+    .message-preview {
+        font-size: 11px;
+        cursor: pointer;
+        padding: 4px;
+        border-radius: 4px;
+        transition: background-color 0.3s ease;
+    }
+    
+    .message-preview:hover {
+        background-color: #f0f8ff;
+    }
+    
+    /* Make table rows clickable on mobile */
+    .admin-table tbody tr {
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+    
+    .admin-table tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+    
+    /* Hide action buttons on mobile, make row clickable */
+    .admin-table .action-btn {
+        display: none;
+    }
+    
+    .suggestion-details {
+        gap: 12px;
+    }
+    
+    .detail-row {
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .detail-row label {
+        min-width: auto;
+        font-size: 14px;
+    }
+    
+    .message-content {
+        padding: 12px;
+        font-size: 14px;
+    }
+    
+    /* Modal adjustments for mobile */
+    .modal-content {
+        width: 95%;
+        max-width: 95%;
+        margin: 10px;
+    }
+    
+    .modal-header {
+        padding: 15px 20px;
+    }
+    
+    .modal-body {
+        padding: 20px;
+    }
+    
+    .modal-footer {
+        padding: 15px 20px;
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .modal-footer button {
+        width: 100%;
+    }
+}
+
 .welcome-text {
     color: #666;
     font-weight: 500;

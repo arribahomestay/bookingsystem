@@ -38,15 +38,20 @@
     <div class="floating-weather-widget" id="weatherWidget">
         <div class="weather-header" onclick="toggleWeatherWidget()">
             <div class="weather-compact" id="weatherCompact">
-                <i class="fas fa-cloud-sun"></i>
-                <span class="weather-temp-compact" id="weatherTempCompact">--°C</span>
+                <div class="weather-compact-main">
+                    <i class="fas fa-cloud-sun"></i>
+                    <span class="weather-temp-compact" id="weatherTempCompact">--°C</span>
+                </div>
+                <div class="weather-location-compact" id="weatherLocationCompact">Dapa, General Luna Siargao</div>
             </div>
-            <button onclick="event.stopPropagation(); initializeWeatherWidget()" class="weather-refresh-btn" title="Refresh Weather">
-                <i class="fas fa-sync-alt"></i>
-            </button>
-            <button class="weather-toggle-btn" title="Expand/Collapse">
-                <i class="fas fa-chevron-down" id="weatherToggleIcon"></i>
-            </button>
+            <div class="weather-buttons">
+                <button onclick="event.stopPropagation(); initializeWeatherWidget()" class="weather-refresh-btn" title="Refresh Weather">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+                <button class="weather-toggle-btn" title="Expand/Collapse">
+                    <i class="fas fa-chevron-down" id="weatherToggleIcon"></i>
+                </button>
+            </div>
         </div>
         <div class="weather-content" id="weatherContent" style="display: none;">
             <div class="weather-loading">
@@ -60,7 +65,8 @@
     <section id="home" class="hero">
         <div class="hero-content">
             <h1>Welcome to Arriba Homestay</h1>
-            <p>Experience comfort, tranquility, and unforgettable memories in our beautiful homestay</p>
+            <p>Chill place. Good vibes. Better memories
+                Stay with us at Arriba Homestay, Siargao</p>
             <div class="hero-buttons">
                 <a href="index.html" class="btn-primary">Book Your Stay</a>
                 <a href="#review" class="btn-secondary">Explore More</a>
@@ -188,7 +194,33 @@
                     </div>
                 </div>
                 <div class="about-image">
-                    <!-- About us image would go here -->
+                    <!-- Contact Form -->
+                    <div class="contact-form-container">
+                        <h3>Send us a Message</h3>
+                        <p>Have suggestions or questions? We'd love to hear from you!</p>
+                        <form id="contactForm" class="contact-form">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="contactName">Name *</label>
+                                    <input type="text" id="contactName" name="contactName" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="contactEmail">Email *</label>
+                                    <input type="email" id="contactEmail" name="contactEmail" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="contactSubject">Subject *</label>
+                                <input type="text" id="contactSubject" name="contactSubject" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="contactMessage">Message *</label>
+                                <textarea id="contactMessage" name="contactMessage" rows="5" required></textarea>
+                            </div>
+                            <button type="submit" class="submit-contact-btn">Send Message</button>
+                        </form>
+                        <div id="contactSubmitMessage" class="contact-submit-message" style="display: none;"></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -244,6 +276,33 @@
             </div>
         </div>
     </footer>
+
+    <!-- Firebase -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js';
+        import { getFirestore } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js';
+        import { getStorage } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-storage.js';
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyCgr15-PAggrpDfczz_KS3dXgENdnIWK4w",
+            authDomain: "booking-47007.firebaseapp.com",
+            projectId: "booking-47007",
+            storageBucket: "booking-47007.firebasestorage.app",
+            messagingSenderId: "941466249313",
+            appId: "1:941466249313:web:55719f70aaadae8d252220",
+            measurementId: "G-B9RG31V3CM"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const storage = getStorage(app);
+        
+        // Make db available globally
+        window.db = db;
+        window.storage = storage;
+        
+        console.log('Firebase initialized successfully');
+    </script>
 
     <script src="homepage.js"></script>
     

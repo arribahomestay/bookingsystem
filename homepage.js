@@ -28,6 +28,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Initialize weather widget
     initializeWeatherWidget();
+    
+    // Initialize contact form
+    initializeContactForm();
 });
 
 // Weather Widget Functionality
@@ -141,6 +144,85 @@ function toggleWeatherWidget() {
         weatherContent.style.display = 'none';
         weatherToggleIcon.style.transform = 'rotate(0deg)';
     }
+}
+
+// Contact Form Functionality
+function initializeContactForm() {
+    const contactForm = document.getElementById('contactForm');
+    
+    if (contactForm) {
+        contactForm.addEventListener('submit', handleContactSubmission);
+    }
+}
+
+function handleContactSubmission(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const contactData = {
+        name: formData.get('contactName'),
+        email: formData.get('contactEmail'),
+        subject: formData.get('contactSubject'),
+        message: formData.get('contactMessage'),
+        submittedAt: new Date().toISOString(),
+        status: 'new'
+    };
+    
+    // Show loading state
+    const submitBtn = e.target.querySelector('.submit-contact-btn');
+    const originalText = submitBtn.textContent;
+    submitBtn.textContent = 'Sending...';
+    submitBtn.disabled = true;
+    
+    // Save to Firebase
+    saveContactMessage(contactData)
+        .then(() => {
+            showContactMessage('Thank you for your message! We\'ll get back to you soon.', 'success');
+            e.target.reset();
+        })
+        .catch(error => {
+            console.error('Error saving contact message:', error);
+            showContactMessage('Sorry, there was an error sending your message. Please try again.', 'error');
+        })
+        .finally(() => {
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
+        });
+}
+
+async function saveContactMessage(contactData) {
+    try {
+        // Import Firestore functions
+        const { collection, addDoc } = await import('https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js');
+        
+        // Use the globally available db object
+        if (!window.db) {
+            throw new Error('Firebase not initialized');
+        }
+        
+        const db = window.db;
+        
+        // Add document to suggestions collection
+        const docRef = await addDoc(collection(db, 'suggestions'), contactData);
+        console.log('Contact message saved with ID:', docRef.id);
+        return docRef.id;
+        
+    } catch (error) {
+        console.error('Error saving contact message:', error);
+        throw error;
+    }
+}
+
+function showContactMessage(message, type) {
+    const messageDiv = document.getElementById('contactSubmitMessage');
+    messageDiv.textContent = message;
+    messageDiv.className = `contact-submit-message ${type}`;
+    messageDiv.style.display = 'block';
+    
+    // Hide message after 5 seconds
+    setTimeout(() => {
+        messageDiv.style.display = 'none';
+    }, 5000);
 }
 
 // Smooth scrolling for navigation links
@@ -934,23 +1016,14 @@ async function loadApprovedReviews(page = 1) {
         showReviewsLoading();
         
         // Import Firebase functions
-        const { initializeApp } = await import('https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js');
-        const { getFirestore, collection, query, where, getDocs, orderBy, limit, startAfter, limitToLast } = await import('https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js');
+        const { collection, query, where, getDocs, orderBy, limit, startAfter, limitToLast } = await import('https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js');
         
-        // Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyCgr15-PAggrpDfczz_KS3dXgENdnIWK4w",
-            authDomain: "booking-47007.firebaseapp.com",
-            projectId: "booking-47007",
-            storageBucket: "booking-47007.firebasestorage.app",
-            messagingSenderId: "941466249313",
-            appId: "1:941466249313:web:55719f70aaadae8d252220",
-            measurementId: "G-B9RG31V3CM"
-        };
+        // Use the globally available db object
+        if (!window.db) {
+            throw new Error('Firebase not initialized');
+        }
         
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+        const db = window.db;
         
         // Query approved reviews - simplified to avoid index issues
         const reviewsRef = collection(db, 'reviews');
