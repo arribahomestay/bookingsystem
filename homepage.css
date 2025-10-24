@@ -452,7 +452,8 @@ body {
     right: 0;
     bottom: 0;
     background: url('hero.png') center/cover no-repeat;
-    filter: blur(3px);
+    filter: blur(15px) brightness(0.6);
+    opacity: 0.3;
     z-index: -1;
 }
 
@@ -464,6 +465,13 @@ body {
     text-shadow: 0 3px 6px rgba(0, 0, 0, 0.5);
     text-align: center;
     padding: 40px;
+}
+
+.welcome-image {
+    max-width: 100%;
+    height: auto;
+    margin-bottom: 30px;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
 }
 
 .hero h1 {
