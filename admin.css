@@ -5,29 +5,60 @@
     box-sizing: border-box;
 }
 
-/* Mobile Menu Toggle */
-.mobile-menu-toggle {
-    display: none;
+/* Bottom Navigation Bar (Mobile Only) */
+.bottom-nav {
+    display: none; /* Hidden by default */
     position: fixed;
-    top: 20px;
-    left: 20px;
-    z-index: 2001;
-    background: #2c3e50;
-    color: white;
-    padding: 12px;
-    border-radius: 8px;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    border-top: 1px solid #e0e0e0;
+    padding: 8px 0 12px 0;
+    z-index: 1000;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+}
+
+.bottom-nav.hidden {
+    transform: translateY(100%);
+}
+
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px 12px;
     cursor: pointer;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+    border-radius: 8px;
+    min-width: 60px;
+}
+
+.nav-item:hover {
+    background: #f8f9fa;
+}
+
+.nav-item.active {
+    color: #3498db;
+    background: rgba(52, 152, 219, 0.1);
+}
+
+.nav-item i {
+    font-size: 1.2rem;
+    margin-bottom: 4px;
     transition: all 0.3s ease;
 }
 
-.mobile-menu-toggle:hover {
-    background: #34495e;
-    transform: translateY(-1px);
+.nav-item.active i {
+    transform: scale(1.1);
 }
 
-.mobile-menu-toggle i {
-    font-size: 1.2rem;
+.nav-item span {
+    font-size: 0.7rem;
+    font-weight: 500;
+    text-align: center;
+    line-height: 1.2;
 }
 
 body {
@@ -2656,5 +2687,551 @@ button:has(.fa-refresh) {
     
     .analytics-section {
         padding: 16px;
+    }
+    
+    /* Mobile Bottom Navigation */
+    .bottom-nav {
+        display: flex !important; /* Show bottom nav on mobile */
+    }
+    
+    .main-content {
+        padding-bottom: 80px; /* Add space for bottom nav */
+        margin-left: 0; /* Remove sidebar margin */
+        width: 100%; /* Full width on mobile */
+    }
+    
+    .sidebar {
+        display: none !important; /* Hide sidebar on mobile */
+    }
+    
+    .admin-container {
+        flex-direction: column;
+    }
+    
+    /* Mobile Booking Management Styles */
+    .mobile-filters {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+    
+    .filter-row {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .filter-row:first-child {
+        flex-direction: row;
+        gap: 15px;
+    }
+    
+    .filter-actions {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        margin-top: 10px;
+    }
+    
+    .mobile-btn {
+        flex: 1;
+        padding: 12px 16px;
+        font-size: 14px;
+    }
+    
+    .mobile-full-width {
+        width: 100%;
+        padding: 15px;
+        font-size: 16px;
+        margin-bottom: 20px;
+    }
+    
+    /* Hide desktop table on mobile */
+    .desktop-table {
+        display: none;
+    }
+    
+    /* Show mobile cards on mobile */
+    .mobile-cards {
+        display: block;
+    }
+    
+    /* Mobile booking cards */
+    .booking-card {
+        background: white;
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        border-left: 4px solid #3498db;
+    }
+    
+    .booking-card.pending {
+        border-left-color: #f39c12;
+    }
+    
+    .booking-card.confirmed {
+        border-left-color: #27ae60;
+    }
+    
+    .booking-card.rejected {
+        border-left-color: #e74c3c;
+    }
+    
+    .booking-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+    }
+    
+    .booking-id {
+        font-weight: 600;
+        color: #2c3e50;
+        font-size: 14px;
+    }
+    
+    .booking-status {
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 500;
+        text-transform: uppercase;
+    }
+    
+    .booking-status.pending {
+        background: #fff3cd;
+        color: #856404;
+    }
+    
+    .booking-status.confirmed {
+        background: #d4edda;
+        color: #155724;
+    }
+    
+    .booking-status.rejected {
+        background: #f8d7da;
+        color: #721c24;
+    }
+    
+    .booking-details {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-bottom: 12px;
+    }
+    
+    .booking-detail {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .booking-detail-label {
+        font-size: 11px;
+        color: #666;
+        font-weight: 500;
+        margin-bottom: 2px;
+    }
+    
+    .booking-detail-value {
+        font-size: 13px;
+        color: #2c3e50;
+        font-weight: 600;
+    }
+    
+    .booking-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 12px;
+    }
+    
+    .booking-action-btn {
+        flex: 1;
+        padding: 8px 12px;
+        border: none;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .booking-action-btn.view {
+        background: #3498db;
+        color: white;
+    }
+    
+    .booking-action-btn.approve {
+        background: #27ae60;
+        color: white;
+    }
+    
+    .booking-action-btn.reject {
+        background: #e74c3c;
+        color: white;
+    }
+    
+    .booking-action-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    
+    /* Mobile Suggestion Cards */
+    .suggestion-card {
+        background: white;
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        border-left: 4px solid #3498db;
+    }
+    
+    .suggestion-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+    }
+    
+    .suggestion-name {
+        font-weight: 600;
+        color: #2c3e50;
+        font-size: 14px;
+    }
+    
+    .suggestion-date {
+        font-size: 12px;
+        color: #666;
+    }
+    
+    .suggestion-details {
+        margin-bottom: 12px;
+    }
+    
+    .suggestion-email {
+        font-size: 12px;
+        color: #666;
+        margin-bottom: 8px;
+    }
+    
+    .suggestion-subject {
+        font-weight: 600;
+        color: #2c3e50;
+        font-size: 13px;
+        margin-bottom: 8px;
+    }
+    
+    .suggestion-message {
+        font-size: 12px;
+        color: #555;
+        line-height: 1.4;
+        max-height: 60px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .suggestion-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 12px;
+    }
+    
+    .suggestion-action-btn {
+        flex: 1;
+        padding: 8px 12px;
+        border: none;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .suggestion-action-btn.view {
+        background: #3498db;
+        color: white;
+    }
+    
+    .suggestion-action-btn.reply {
+        background: #27ae60;
+        color: white;
+    }
+    
+    .suggestion-action-btn.delete {
+        background: #e74c3c;
+        color: white;
+    }
+    
+    /* Mobile Review Cards */
+    .review-card {
+        background: white;
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        border-left: 4px solid #f39c12;
+    }
+    
+    .review-card.approved {
+        border-left-color: #27ae60;
+    }
+    
+    .review-card.rejected {
+        border-left-color: #e74c3c;
+    }
+    
+    .review-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+    }
+    
+    .review-customer {
+        font-weight: 600;
+        color: #2c3e50;
+        font-size: 14px;
+    }
+    
+    .review-rating {
+        display: flex;
+        gap: 2px;
+    }
+    
+    .review-rating i {
+        color: #f39c12;
+        font-size: 12px;
+    }
+    
+    .review-details {
+        margin-bottom: 12px;
+    }
+    
+    .review-text {
+        font-size: 13px;
+        color: #555;
+        line-height: 1.4;
+        margin-bottom: 8px;
+        max-height: 60px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .review-media {
+        font-size: 11px;
+        color: #666;
+        margin-bottom: 8px;
+    }
+    
+    .review-date {
+        font-size: 11px;
+        color: #666;
+    }
+    
+    .review-status {
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 500;
+        text-transform: uppercase;
+    }
+    
+    .review-status.pending {
+        background: #fff3cd;
+        color: #856404;
+    }
+    
+    .review-status.approved {
+        background: #d4edda;
+        color: #155724;
+    }
+    
+    .review-status.rejected {
+        background: #f8d7da;
+        color: #721c24;
+    }
+    
+    .review-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 12px;
+    }
+    
+    .review-action-btn {
+        flex: 1;
+        padding: 8px 12px;
+        border: none;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .review-action-btn.view {
+        background: #3498db;
+        color: white;
+    }
+    
+    .review-action-btn.approve {
+        background: #27ae60;
+        color: white;
+    }
+    
+    .review-action-btn.reject {
+        background: #e74c3c;
+        color: white;
+    }
+    
+    /* Mobile Record Cards */
+    .record-card {
+        background: white;
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        border-left: 4px solid #3498db;
+    }
+    
+    .record-card.pending {
+        border-left-color: #f39c12;
+    }
+    
+    .record-card.confirmed {
+        border-left-color: #27ae60;
+    }
+    
+    .record-card.rejected {
+        border-left-color: #e74c3c;
+    }
+    
+    .record-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+    }
+    
+    .record-id {
+        font-weight: 600;
+        color: #2c3e50;
+        font-size: 14px;
+    }
+    
+    .record-status {
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 500;
+        text-transform: uppercase;
+    }
+    
+    .record-status.pending {
+        background: #fff3cd;
+        color: #856404;
+    }
+    
+    .record-status.confirmed {
+        background: #d4edda;
+        color: #155724;
+    }
+    
+    .record-status.rejected {
+        background: #f8d7da;
+        color: #721c24;
+    }
+    
+    .record-details {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-bottom: 12px;
+    }
+    
+    .record-detail {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .record-detail-label {
+        font-size: 11px;
+        color: #666;
+        font-weight: 500;
+        margin-bottom: 2px;
+    }
+    
+    .record-detail-value {
+        font-size: 13px;
+        color: #2c3e50;
+        font-weight: 600;
+    }
+    
+    .record-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 12px;
+    }
+    
+    .record-action-btn {
+        flex: 1;
+        padding: 8px 12px;
+        border: none;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .record-action-btn.view {
+        background: #3498db;
+        color: white;
+    }
+    
+    .record-action-btn.export {
+        background: #27ae60;
+        color: white;
+    }
+    
+    .record-action-btn.delete {
+        background: #e74c3c;
+        color: white;
+    }
+}
+
+/* Desktop: Hide bottom navigation, show sidebar */
+@media (min-width: 769px) {
+    .bottom-nav {
+        display: none !important; /* Hide bottom nav on desktop */
+    }
+    
+    .sidebar {
+        display: block !important; /* Show sidebar on desktop */
+    }
+    
+    .main-content {
+        margin-left: 280px; /* Restore sidebar margin */
+        padding-bottom: 0; /* Remove bottom padding */
+    }
+    
+    /* Desktop: Show table, hide mobile cards */
+    .desktop-table {
+        display: block;
+    }
+    
+    .mobile-cards {
+        display: none;
+    }
+    
+    .mobile-filters {
+        display: none;
+    }
+    
+    .mobile-full-width {
+        width: auto;
+        padding: 12px 20px;
+        font-size: 0.9rem;
+        margin-bottom: 0;
     }
 }

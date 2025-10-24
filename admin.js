@@ -4096,3 +4096,407 @@ window.closeModal = closeSuggestionModal;
 window.initializeAnalytics = initializeAnalytics;
 window.refreshAnalytics = refreshAnalytics;
 window.updateAnalytics = updateAnalytics;
+
+// Mobile Booking Cards Generation
+function generateMobileBookingCards(bookings) {
+    const mobileCardsContainer = document.getElementById('mobileBookingsCards');
+    if (!mobileCardsContainer) return;
+    
+    if (!bookings || bookings.length === 0) {
+        mobileCardsContainer.innerHTML = `
+            <div class="no-data-message">
+                <i class="fas fa-calendar-times"></i>
+                <p>No bookings found</p>
+            </div>
+        `;
+        return;
+    }
+    
+    const cardsHTML = bookings.map(booking => {
+        const statusClass = booking.status.toLowerCase();
+        const statusColors = {
+            'pending': '#f39c12',
+            'confirmed': '#27ae60',
+            'rejected': '#e74c3c'
+        };
+        
+        return `
+            <div class="booking-card ${statusClass}">
+                <div class="booking-card-header">
+                    <div class="booking-id">${booking.id}</div>
+                    <div class="booking-status ${statusClass}">${booking.status}</div>
+                </div>
+                <div class="booking-details">
+                    <div class="booking-detail">
+                        <div class="booking-detail-label">Customer</div>
+                        <div class="booking-detail-value">${booking.customerName}</div>
+                    </div>
+                    <div class="booking-detail">
+                        <div class="booking-detail-label">Contact</div>
+                        <div class="booking-detail-value">${booking.phoneNumber}</div>
+                    </div>
+                    <div class="booking-detail">
+                        <div class="booking-detail-label">Check-in</div>
+                        <div class="booking-detail-value">${formatDate(booking.checkIn)}</div>
+                    </div>
+                    <div class="booking-detail">
+                        <div class="booking-detail-label">Check-out</div>
+                        <div class="booking-detail-value">${formatDate(booking.checkOut)}</div>
+                    </div>
+                    <div class="booking-detail">
+                        <div class="booking-detail-label">Guests</div>
+                        <div class="booking-detail-value">${booking.adults} adults${booking.kids > 0 ? `, ${booking.kids} kids` : ''}</div>
+                    </div>
+                    <div class="booking-detail">
+                        <div class="booking-detail-label">Amount</div>
+                        <div class="booking-detail-value">₱${booking.totalAmount}</div>
+                    </div>
+                </div>
+                <div class="booking-actions">
+                    <button class="booking-action-btn view" onclick="viewBookingDetails('${booking.id}')">
+                        <i class="fas fa-eye"></i> View
+                    </button>
+                    ${booking.status === 'pending' ? `
+                        <button class="booking-action-btn approve" onclick="approveBooking('${booking.id}')">
+                            <i class="fas fa-check"></i> Approve
+                        </button>
+                        <button class="booking-action-btn reject" onclick="rejectBooking('${booking.id}')">
+                            <i class="fas fa-times"></i> Reject
+                        </button>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+    }).join('');
+    
+    mobileCardsContainer.innerHTML = cardsHTML;
+}
+
+// Update mobile cards when bookings change
+function updateMobileBookingCards() {
+    if (window.innerWidth <= 768) {
+        // Get current bookings data and generate mobile cards
+        const bookings = window.currentBookings || [];
+        generateMobileBookingCards(bookings);
+    }
+}
+
+// Mobile Suggestion Cards Generation
+function generateMobileSuggestionCards(suggestions) {
+    const mobileCardsContainer = document.getElementById('mobileSuggestionsCards');
+    if (!mobileCardsContainer) return;
+    
+    if (!suggestions || suggestions.length === 0) {
+        mobileCardsContainer.innerHTML = `
+            <div class="no-data-message">
+                <i class="fas fa-comments"></i>
+                <p>No suggestions found</p>
+            </div>
+        `;
+        return;
+    }
+    
+    const cardsHTML = suggestions.map(suggestion => {
+        return `
+            <div class="suggestion-card">
+                <div class="suggestion-card-header">
+                    <div class="suggestion-name">${suggestion.name}</div>
+                    <div class="suggestion-date">${formatDate(suggestion.date)}</div>
+                </div>
+                <div class="suggestion-details">
+                    <div class="suggestion-email">${suggestion.email}</div>
+                    <div class="suggestion-subject">${suggestion.subject}</div>
+                    <div class="suggestion-message">${suggestion.message}</div>
+                </div>
+                <div class="suggestion-actions">
+                    <button class="suggestion-action-btn view" onclick="viewSuggestionDetails('${suggestion.id}')">
+                        <i class="fas fa-eye"></i> View
+                    </button>
+                    <button class="suggestion-action-btn reply" onclick="replyToSuggestion('${suggestion.id}')">
+                        <i class="fas fa-reply"></i> Reply
+                    </button>
+                    <button class="suggestion-action-btn delete" onclick="deleteSuggestion('${suggestion.id}')">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join('');
+    
+    mobileCardsContainer.innerHTML = cardsHTML;
+}
+
+// Mobile Review Cards Generation
+function generateMobileReviewCards(reviews) {
+    const mobileCardsContainer = document.getElementById('mobileReviewsCards');
+    if (!mobileCardsContainer) return;
+    
+    if (!reviews || reviews.length === 0) {
+        mobileCardsContainer.innerHTML = `
+            <div class="no-data-message">
+                <i class="fas fa-star"></i>
+                <p>No reviews found</p>
+            </div>
+        `;
+        return;
+    }
+    
+    const cardsHTML = reviews.map(review => {
+        const statusClass = review.status.toLowerCase();
+        const stars = '★'.repeat(review.rating) + '☆'.repeat(5 - review.rating);
+        
+        return `
+            <div class="review-card ${statusClass}">
+                <div class="review-card-header">
+                    <div class="review-customer">${review.customerName}</div>
+                    <div class="review-rating">${stars}</div>
+                </div>
+                <div class="review-details">
+                    <div class="review-text">${review.reviewText}</div>
+                    <div class="review-media">${review.mediaCount || 0} media files</div>
+                    <div class="review-date">${formatDate(review.submittedDate)}</div>
+                </div>
+                <div class="review-status ${statusClass}">${review.status}</div>
+                <div class="review-actions">
+                    <button class="review-action-btn view" onclick="viewReviewDetails('${review.id}')">
+                        <i class="fas fa-eye"></i> View
+                    </button>
+                    ${review.status === 'pending' ? `
+                        <button class="review-action-btn approve" onclick="approveReview('${review.id}')">
+                            <i class="fas fa-check"></i> Approve
+                        </button>
+                        <button class="review-action-btn reject" onclick="rejectReview('${review.id}')">
+                            <i class="fas fa-times"></i> Reject
+                        </button>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+    }).join('');
+    
+    mobileCardsContainer.innerHTML = cardsHTML;
+}
+
+// Mobile Record Cards Generation
+function generateMobileRecordCards(records) {
+    const mobileCardsContainer = document.getElementById('mobileRecordsCards');
+    if (!mobileCardsContainer) return;
+    
+    if (!records || records.length === 0) {
+        mobileCardsContainer.innerHTML = `
+            <div class="no-data-message">
+                <i class="fas fa-history"></i>
+                <p>No records found</p>
+            </div>
+        `;
+        return;
+    }
+    
+    const cardsHTML = records.map(record => {
+        const statusClass = record.status.toLowerCase();
+        
+        return `
+            <div class="record-card ${statusClass}">
+                <div class="record-card-header">
+                    <div class="record-id">${record.id}</div>
+                    <div class="record-status ${statusClass}">${record.status}</div>
+                </div>
+                <div class="record-details">
+                    <div class="record-detail">
+                        <div class="record-detail-label">Customer</div>
+                        <div class="record-detail-value">${record.customerName}</div>
+                    </div>
+                    <div class="record-detail">
+                        <div class="record-detail-label">Contact</div>
+                        <div class="record-detail-value">${record.phoneNumber}</div>
+                    </div>
+                    <div class="record-detail">
+                        <div class="record-detail-label">Check-in</div>
+                        <div class="record-detail-value">${formatDate(record.checkIn)}</div>
+                    </div>
+                    <div class="record-detail">
+                        <div class="record-detail-label">Check-out</div>
+                        <div class="record-detail-value">${formatDate(record.checkOut)}</div>
+                    </div>
+                    <div class="record-detail">
+                        <div class="record-detail-label">Guests</div>
+                        <div class="record-detail-value">${record.adults} adults${record.kids > 0 ? `, ${record.kids} kids` : ''}</div>
+                    </div>
+                    <div class="record-detail">
+                        <div class="record-detail-label">Amount</div>
+                        <div class="record-detail-value">₱${record.totalAmount}</div>
+                    </div>
+                </div>
+                <div class="record-actions">
+                    <button class="record-action-btn view" onclick="viewRecordDetails('${record.id}')">
+                        <i class="fas fa-eye"></i> View
+                    </button>
+                    <button class="record-action-btn export" onclick="exportRecord('${record.id}')">
+                        <i class="fas fa-download"></i> Export
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join('');
+    
+    mobileCardsContainer.innerHTML = cardsHTML;
+}
+
+// Update mobile cards for all sections
+function updateAllMobileCards() {
+    if (window.innerWidth <= 768) {
+        // Update each section's mobile cards
+        const bookings = window.currentBookings || [];
+        const suggestions = window.currentSuggestions || [];
+        const reviews = window.currentReviews || [];
+        const records = window.currentRecords || [];
+        
+        generateMobileBookingCards(bookings);
+        generateMobileSuggestionCards(suggestions);
+        generateMobileReviewCards(reviews);
+        generateMobileRecordCards(records);
+    }
+}
+
+// Make functions globally available
+window.generateMobileBookingCards = generateMobileBookingCards;
+window.updateMobileBookingCards = updateMobileBookingCards;
+window.generateMobileSuggestionCards = generateMobileSuggestionCards;
+window.generateMobileReviewCards = generateMobileReviewCards;
+window.generateMobileRecordCards = generateMobileRecordCards;
+window.updateAllMobileCards = updateAllMobileCards;
+
+// Bottom Navigation Functionality (Mobile Only)
+let lastScrollTop = 0;
+let isScrolling = false;
+
+// Initialize bottom navigation
+function initializeBottomNavigation() {
+    const bottomNav = document.getElementById('bottomNav');
+    const navItems = document.querySelectorAll('.nav-item');
+    
+    if (!bottomNav) return;
+    
+    // Add click handlers to nav items
+    navItems.forEach(item => {
+        item.addEventListener('click', () => {
+            const section = item.getAttribute('data-section');
+            if (section) {
+                // Remove active class from all items
+                navItems.forEach(nav => nav.classList.remove('active'));
+                // Add active class to clicked item
+                item.classList.add('active');
+                // Navigate to section
+                navigateToSection(section);
+            }
+        });
+    });
+    
+    // Set initial active state
+    const currentSection = document.querySelector('.content-section.active');
+    if (currentSection) {
+        const sectionId = currentSection.id.replace('-section', '');
+        const activeNavItem = document.querySelector(`[data-section="${sectionId}"]`);
+        if (activeNavItem) {
+            activeNavItem.classList.add('active');
+        }
+    }
+}
+
+// Navigate to section
+function navigateToSection(sectionName) {
+    // Hide all sections
+    const sections = document.querySelectorAll('.content-section');
+    sections.forEach(section => section.classList.remove('active'));
+    
+    // Show target section
+    const targetSection = document.getElementById(`${sectionName}-section`);
+    if (targetSection) {
+        targetSection.classList.add('active');
+        
+        // Update page title
+        const pageTitle = document.getElementById('pageTitle');
+        if (pageTitle) {
+            const titles = {
+                'analytics': 'Analytics Dashboard',
+                'suggestions': 'Customer Suggestions',
+                'booking': 'Booking Management',
+                'records': 'Booking Records',
+                'reviews': 'Customer Reviews'
+            };
+            pageTitle.textContent = titles[sectionName] || 'Admin Dashboard';
+        }
+    }
+}
+
+// Auto-hide bottom navigation on scroll
+function handleScroll() {
+    if (window.innerWidth > 768) return; // Only on mobile
+    
+    const bottomNav = document.getElementById('bottomNav');
+    if (!bottomNav) return;
+    
+    const currentScrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    
+    // Show/hide based on scroll direction
+    if (currentScrollTop > lastScrollTop && currentScrollTop > 100) {
+        // Scrolling down - hide nav
+        bottomNav.classList.add('hidden');
+    } else {
+        // Scrolling up - show nav
+        bottomNav.classList.remove('hidden');
+    }
+    
+    lastScrollTop = currentScrollTop;
+}
+
+// Throttle scroll events
+function throttle(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    // Only initialize bottom navigation on mobile devices
+    if (window.innerWidth <= 768) {
+        initializeBottomNavigation();
+        
+        // Add scroll listener with throttling
+        window.addEventListener('scroll', throttle(handleScroll, 100));
+    }
+    
+    // Handle resize events
+    window.addEventListener('resize', () => {
+        const bottomNav = document.getElementById('bottomNav');
+        if (bottomNav) {
+            if (window.innerWidth > 768) {
+                // Desktop: Hide bottom nav, show sidebar
+                bottomNav.style.display = 'none';
+                const sidebar = document.getElementById('sidebar');
+                if (sidebar) {
+                    sidebar.style.display = 'block';
+                }
+            } else {
+                // Mobile: Show bottom nav, hide sidebar
+                bottomNav.style.display = 'flex';
+                const sidebar = document.getElementById('sidebar');
+                if (sidebar) {
+                    sidebar.style.display = 'none';
+                }
+                // Initialize bottom navigation if not already done
+                if (!bottomNav.hasAttribute('data-initialized')) {
+                    initializeBottomNavigation();
+                    bottomNav.setAttribute('data-initialized', 'true');
+                }
+            }
+        }
+    });
+});
