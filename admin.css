@@ -518,27 +518,125 @@ button:has(.fa-refresh) {
     
     /* Modal adjustments for mobile */
     .modal-content {
-        width: 95%;
-        max-width: 95%;
-        margin: 10px;
+        width: 98%;
+        max-width: 98%;
+        margin: 5px;
+        max-height: 95vh;
+        overflow-x: hidden;
     }
     
     .modal-header {
-        padding: 15px 20px;
+        padding: 10px 12px;
+    }
+    
+    .modal-header h3 {
+        font-size: 14px;
     }
     
     .modal-body {
-        padding: 20px;
+        padding: 12px;
+        max-height: 70vh;
+        overflow-y: auto;
+        overflow-x: hidden;
     }
     
     .modal-footer {
-        padding: 15px 20px;
+        padding: 10px 12px;
         flex-direction: column;
-        gap: 10px;
+        gap: 6px;
+    }
+    
+    /* Mobile booking details layout */
+    .booking-details {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+    
+    .detail-row {
+        display: flex;
+        flex-direction: column;
+        padding: 6px 0;
+        border-bottom: 1px solid #f0f0f0;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+    }
+    
+    .detail-row:last-child {
+        border-bottom: none;
+    }
+    
+    .detail-row strong {
+        font-size: 11px;
+        color: #666;
+        margin-bottom: 3px;
+        font-weight: 600;
+    }
+    
+    .detail-row span:not(.status-badge) {
+        font-size: 13px;
+        color: #2c3e50;
+        word-break: break-word;
+        overflow-wrap: break-word;
+        hyphens: auto;
+    }
+    
+    .status-badge {
+        font-size: 11px;
+        padding: 3px 6px;
     }
     
     .modal-footer button {
         width: 100%;
+        font-size: 14px;
+        padding: 10px;
+    }
+    
+    /* Ensure no horizontal scroll */
+    .modal {
+        overflow-x: hidden;
+    }
+    
+    .modal-content * {
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+    
+    /* Prevent horizontal overflow in modal content */
+    .booking-details {
+        width: 100%;
+        overflow-x: hidden;
+    }
+    
+    .detail-row {
+        width: 100%;
+        overflow-x: hidden;
+    }
+    
+    .detail-row strong,
+    .detail-row span {
+        max-width: 100%;
+        overflow-x: hidden;
+        white-space: normal;
+    }
+    
+    /* Receipt image container for mobile */
+    .receipt-image-container {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: hidden;
+    }
+    
+    .receipt-image {
+        max-width: 100%;
+        height: auto;
+    }
+    
+    .view-receipt-btn {
+        width: 100%;
+        margin-top: 8px;
+        font-size: 12px;
+        padding: 8px;
     }
 }
 
@@ -2100,13 +2198,44 @@ button:has(.fa-refresh) {
         max-height: 120px;
     }
     
+    .receipt-modal {
+        padding: 10px;
+    }
+    
     .receipt-modal-content {
-        max-width: 95%;
+        max-width: 98%;
         max-height: 95%;
+        width: 100%;
+    }
+    
+    .receipt-modal .modal-header {
+        padding: 12px 16px;
+    }
+    
+    .receipt-modal .modal-header h3 {
+        font-size: 16px;
+    }
+    
+    .receipt-modal .close-btn {
+        width: 30px;
+        height: 30px;
+        font-size: 14px;
+    }
+    
+    .receipt-modal .modal-body {
+        padding: 10px;
+        max-height: 70vh;
+        overflow-y: auto;
     }
     
     .full-receipt-image {
         max-height: 60vh;
+        max-width: 100%;
+        width: auto;
+        height: auto;
+        object-fit: contain;
+        display: block;
+        margin: 0 auto;
     }
 }
 
@@ -3386,4 +3515,71 @@ button:has(.fa-refresh) {
     align-items: center;
     justify-content: center;
     font-weight: 600;
+}
+
+/* Mobile Notification Dropdown */
+.mobile-notification-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    min-width: 280px;
+    max-width: 320px;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+}
+
+.mobile-notification-dropdown.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.mobile-notification-dropdown .notification-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid #e0e0e0;
+    background: #f8f9fa;
+}
+
+.mobile-notification-dropdown .notification-header h4 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.mobile-notification-dropdown .mark-all-read {
+    background: #3498db;
+    color: white;
+    border: none;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.mobile-notification-dropdown .mark-all-read:hover {
+    background: #2980b9;
+}
+
+.mobile-notification-dropdown .notification-list {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.mobile-notification-dropdown .no-notifications {
+    padding: 20px;
+    text-align: center;
+    color: #666;
+    font-size: 14px;
 }

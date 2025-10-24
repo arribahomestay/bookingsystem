@@ -400,9 +400,63 @@ window.toggleNotificationDropdown = function() {
     }
 };
 
+// Mobile notification dropdown toggle
+window.toggleMobileNotificationDropdown = function() {
+    const dropdown = document.getElementById('mobileNotificationDropdown');
+    if (dropdown) {
+        dropdown.classList.toggle('show');
+        
+        // Update notification list when opened
+        if (dropdown.classList.contains('show')) {
+            updateMobileNotificationList();
+        }
+    }
+};
+
 // Update notification list with pending bookings
 function updateNotificationList() {
     const notificationList = document.getElementById('notificationList');
+    if (!notificationList) return;
+    
+    const pendingBookings = allBookings.filter(booking => 
+        booking.status === 'pending' || booking.status === 'new'
+    );
+    
+    if (pendingBookings.length === 0) {
+        notificationList.innerHTML = '<div class="no-notifications">No new bookings</div>';
+        return;
+    }
+    
+    // Sort by creation date (newest first)
+    pendingBookings.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    
+    notificationList.innerHTML = pendingBookings.map(booking => {
+        const timeAgo = getTimeAgo(booking.createdAt);
+        const checkInDate = new Date(booking.checkIn).toLocaleDateString();
+        const checkOutDate = new Date(booking.checkOut).toLocaleDateString();
+        const isRead = isNotificationRead(booking.id);
+        const readClass = isRead ? 'read' : 'unread';
+        
+        return `
+            <div class="notification-item ${readClass}" onclick="viewBookingFromNotification('${booking.id}')">
+                <div class="notification-item-header">
+                    <span class="notification-customer">${booking.customerName}</span>
+                    <span class="notification-time">${timeAgo}</span>
+                </div>
+                <div class="notification-details">
+                    <div>📅 ${checkInDate} - ${checkOutDate}</div>
+                    <div>👥 ${booking.adults} adults${booking.kids > 0 ? `, ${booking.kids} kids` : ''}${booking.extraBeds > 0 ? ` + ${booking.extraBeds} extra beds` : ''}</div>
+                    <div>💰 ₱${booking.totalAmount.toLocaleString()}</div>
+                </div>
+                <span class="notification-status ${booking.status}">${booking.status.toUpperCase()}</span>
+            </div>
+        `;
+    }).join('');
+}
+
+// Update mobile notification list with pending bookings
+function updateMobileNotificationList() {
+    const notificationList = document.getElementById('mobileNotificationList');
     if (!notificationList) return;
     
     const pendingBookings = allBookings.filter(booking => 
@@ -570,6 +624,14 @@ function setupEventListeners() {
 
 // Open receipt modal
 window.openReceiptModal = function(receiptUrl) {
+    console.log('Opening receipt modal with URL:', receiptUrl);
+    
+    // Remove any existing receipt modal first
+    const existingModal = document.querySelector('.receipt-modal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
     const modal = document.createElement('div');
     modal.className = 'modal receipt-modal';
     modal.style.display = 'flex';
@@ -582,12 +644,22 @@ window.openReceiptModal = function(receiptUrl) {
                 </button>
             </div>
             <div class="modal-body">
-                <img src="${receiptUrl}" alt="GCash Receipt" class="full-receipt-image">
+                <img src="${receiptUrl}" alt="GCash Receipt" class="full-receipt-image" onerror="console.error('Failed to load receipt image:', this.src)">
             </div>
         </div>
     `;
     
     document.body.appendChild(modal);
+    
+    // Add event listener to close button as backup
+    const closeBtn = modal.querySelector('.close-btn');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            closeReceiptModal();
+        });
+    }
     
     // Close modal when clicking outside
     modal.addEventListener('click', function(e) {
@@ -595,13 +667,22 @@ window.openReceiptModal = function(receiptUrl) {
             closeReceiptModal();
         }
     });
+    
+    // Prevent body scroll when modal is open
+    document.body.style.overflow = 'hidden';
+    
+    console.log('Receipt modal opened successfully');
 };
 
 // Close receipt modal
 window.closeReceiptModal = function() {
+    console.log('Closing receipt modal');
     const modal = document.querySelector('.receipt-modal');
     if (modal) {
         modal.remove();
+        // Restore body scroll
+        document.body.style.overflow = '';
+        console.log('Receipt modal closed successfully');
     }
 };
 
@@ -944,6 +1025,9 @@ function updateNotificationCount(count = null) {
     }
     
     const notificationCount = document.getElementById('notificationCount');
+    const mobileNotificationCount = document.getElementById('mobileNotificationCount');
+    
+    // Update desktop notification count
     if (notificationCount) {
         notificationCount.textContent = unreadCount;
         
@@ -959,6 +1043,20 @@ function updateNotificationCount(count = null) {
         } else {
             notificationCount.style.background = '#95a5a6';
             notificationCount.style.animation = 'none';
+        }
+    }
+    
+    // Update mobile notification count
+    if (mobileNotificationCount) {
+        mobileNotificationCount.textContent = unreadCount;
+        
+        // Add visual effects for new notifications
+        if (unreadCount > 0) {
+            mobileNotificationCount.style.background = '#e74c3c';
+            mobileNotificationCount.style.animation = 'pulse 1s ease-in-out';
+        } else {
+            mobileNotificationCount.style.background = '#95a5a6';
+            mobileNotificationCount.style.animation = 'none';
         }
     }
 }
@@ -1724,60 +1822,122 @@ function displayBookingDetails(booking) {
     const days = Math.ceil((checkOut - checkIn) / (1000 * 3600 * 24));
     const nights = days - 1;
     
-    content.innerHTML = `
-        <div class="booking-details">
-            <div class="detail-row">
-                <strong>Booking ID:</strong> ${booking.id}
-            </div>
-            <div class="detail-row">
-                <strong>Customer Name:</strong> ${booking.customerName}
-            </div>
-            <div class="detail-row">
-                <strong>Phone Number:</strong> ${booking.phoneNumber}
-            </div>
-            <div class="detail-row">
-                <strong>Email:</strong> ${booking.email}
-            </div>
-            <div class="detail-row">
-                <strong>Check-in Date:</strong> ${formatDate(booking.checkIn)}
-            </div>
-            <div class="detail-row">
-                <strong>Check-out Date:</strong> ${formatDate(booking.checkOut)}
-            </div>
-            <div class="detail-row">
-                <strong>Duration:</strong> ${days} days, ${nights} nights
-            </div>
-            <div class="detail-row">
-                <strong>Number of Adults:</strong> ${booking.adults}
-            </div>
-            <div class="detail-row">
-                <strong>Number of Kids:</strong> ${booking.kids}
-            </div>
-            <div class="detail-row">
-                <strong>Extra Beds:</strong> ${booking.extraBeds}
-            </div>
-            <div class="detail-row">
-                <strong>Total Amount:</strong> ₱${booking.totalAmount.toLocaleString()}
-            </div>
-            <div class="detail-row">
-                <strong>Status:</strong> <span class="status-badge status-${booking.status}">${booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}</span>
-            </div>
-            <div class="detail-row">
-                <strong>Created At:</strong> ${formatDateTime(booking.createdAt)}
-            </div>
-            ${booking.receiptUrl ? `
-            <div class="detail-row">
-                <strong>GCash Receipt:</strong>
-                <div class="receipt-image-container">
-                    <img src="${booking.receiptUrl}" alt="GCash Receipt" class="receipt-image" onclick="openReceiptModal('${booking.receiptUrl}')">
-                    <button onclick="openReceiptModal('${booking.receiptUrl}')" class="view-receipt-btn">
-                        <i class="fas fa-eye"></i> View Full Size
-                    </button>
+    // Check if mobile device
+    const isMobile = window.innerWidth <= 768;
+    
+    if (isMobile) {
+        // Mobile-optimized layout with shorter labels
+        content.innerHTML = `
+            <div class="booking-details">
+                <div class="detail-row">
+                    <strong>ID:</strong> ${booking.id}
                 </div>
+                <div class="detail-row">
+                    <strong>Customer:</strong> ${booking.customerName}
+                </div>
+                <div class="detail-row">
+                    <strong>Phone:</strong> ${booking.phoneNumber}
+                </div>
+                <div class="detail-row">
+                    <strong>Email:</strong> ${booking.email}
+                </div>
+                <div class="detail-row">
+                    <strong>Check-in:</strong> ${formatDate(booking.checkIn)}
+                </div>
+                <div class="detail-row">
+                    <strong>Check-out:</strong> ${formatDate(booking.checkOut)}
+                </div>
+                <div class="detail-row">
+                    <strong>Duration:</strong> ${days} days, ${nights} nights
+                </div>
+                <div class="detail-row">
+                    <strong>Adults:</strong> ${booking.adults}
+                </div>
+                <div class="detail-row">
+                    <strong>Kids:</strong> ${booking.kids}
+                </div>
+                <div class="detail-row">
+                    <strong>Extra Beds:</strong> ${booking.extraBeds}
+                </div>
+                <div class="detail-row">
+                    <strong>Amount:</strong> ₱${booking.totalAmount.toLocaleString()}
+                </div>
+                <div class="detail-row">
+                    <strong>Status:</strong> <span class="status-badge status-${booking.status}">${booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}</span>
+                </div>
+                <div class="detail-row">
+                    <strong>Created:</strong> ${formatDateTime(booking.createdAt)}
+                </div>
+                ${booking.receiptUrl ? `
+                <div class="detail-row">
+                    <strong>Receipt:</strong>
+                    <div class="receipt-image-container">
+                        <img src="${booking.receiptUrl}" alt="GCash Receipt" class="receipt-image" onclick="openReceiptModal('${booking.receiptUrl}')">
+                        <button onclick="openReceiptModal('${booking.receiptUrl}')" class="view-receipt-btn">
+                            <i class="fas fa-eye"></i> View Full Size
+                        </button>
+                    </div>
+                </div>
+                ` : ''}
             </div>
-            ` : ''}
-        </div>
-    `;
+        `;
+    } else {
+        // Desktop layout with full labels
+        content.innerHTML = `
+            <div class="booking-details">
+                <div class="detail-row">
+                    <strong>Booking ID:</strong> ${booking.id}
+                </div>
+                <div class="detail-row">
+                    <strong>Customer Name:</strong> ${booking.customerName}
+                </div>
+                <div class="detail-row">
+                    <strong>Phone Number:</strong> ${booking.phoneNumber}
+                </div>
+                <div class="detail-row">
+                    <strong>Email:</strong> ${booking.email}
+                </div>
+                <div class="detail-row">
+                    <strong>Check-in Date:</strong> ${formatDate(booking.checkIn)}
+                </div>
+                <div class="detail-row">
+                    <strong>Check-out Date:</strong> ${formatDate(booking.checkOut)}
+                </div>
+                <div class="detail-row">
+                    <strong>Duration:</strong> ${days} days, ${nights} nights
+                </div>
+                <div class="detail-row">
+                    <strong>Number of Adults:</strong> ${booking.adults}
+                </div>
+                <div class="detail-row">
+                    <strong>Number of Kids:</strong> ${booking.kids}
+                </div>
+                <div class="detail-row">
+                    <strong>Extra Beds:</strong> ${booking.extraBeds}
+                </div>
+                <div class="detail-row">
+                    <strong>Total Amount:</strong> ₱${booking.totalAmount.toLocaleString()}
+                </div>
+                <div class="detail-row">
+                    <strong>Status:</strong> <span class="status-badge status-${booking.status}">${booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}</span>
+                </div>
+                <div class="detail-row">
+                    <strong>Created At:</strong> ${formatDateTime(booking.createdAt)}
+                </div>
+                ${booking.receiptUrl ? `
+                <div class="detail-row">
+                    <strong>GCash Receipt:</strong>
+                    <div class="receipt-image-container">
+                        <img src="${booking.receiptUrl}" alt="GCash Receipt" class="receipt-image" onclick="openReceiptModal('${booking.receiptUrl}')">
+                        <button onclick="openReceiptModal('${booking.receiptUrl}')" class="view-receipt-btn">
+                            <i class="fas fa-eye"></i> View Full Size
+                        </button>
+                    </div>
+                </div>
+                ` : ''}
+            </div>
+        `;
+    }
     
     // Show/hide action buttons based on status
     const approveBtn = document.getElementById('approveBtn');
@@ -4592,6 +4752,19 @@ document.addEventListener('DOMContentLoaded', function() {
         document.addEventListener('click', function(e) {
             if (!mobileAccountIcon.contains(e.target)) {
                 mobileAccountDropdown.classList.remove('active');
+            }
+        });
+    }
+    
+    // Mobile notification dropdown functionality
+    const mobileNotificationBell = document.querySelector('.mobile-header-right .notification-bell');
+    const mobileNotificationDropdown = document.getElementById('mobileNotificationDropdown');
+    
+    if (mobileNotificationBell && mobileNotificationDropdown) {
+        // Close notification dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!mobileNotificationBell.contains(e.target)) {
+                mobileNotificationDropdown.classList.remove('show');
             }
         });
     }
