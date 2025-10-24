@@ -362,9 +362,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const totalAmountSpan = document.getElementById('totalAmount');
 
     // Pricing constants
-    const PRICE_PER_NIGHT = 3300;
-    const PRICE_PER_ADULT = 300;
-    const PRICE_PER_KID = 240;
+    const BASE_RATE = 3300; // Base rate per night (includes up to 5 guests)
+    const MAX_GUESTS_INCLUDED = 5; // Maximum guests included in base rate
+    const PRICE_PER_EXTRA_ADULT = 300; // Additional charge per adult over 5
+    const PRICE_PER_EXTRA_KID = 240; // Additional charge per kid over 5
     const PRICE_PER_EXTRA_BED = 300;
     const MAX_EXTRA_BEDS = 5;
 
@@ -478,12 +479,23 @@ document.addEventListener('DOMContentLoaded', function() {
             nights = days;
         }
 
-        // Calculate total amount
-        const baseAmount = nights * PRICE_PER_NIGHT;
-        const adultAmount = adults * PRICE_PER_ADULT;
-        const kidAmount = kids * PRICE_PER_KID;
+        // Calculate total amount with new pricing structure
+        const totalGuests = adults + kids;
+        const baseAmount = nights * BASE_RATE; // Base rate includes up to 5 guests
+        
+        // Calculate extra charges for guests over 5
+        let extraGuestAmount = 0;
+        if (totalGuests > MAX_GUESTS_INCLUDED) {
+            const extraGuests = totalGuests - MAX_GUESTS_INCLUDED;
+            // Calculate how many adults and kids are in the extra guests
+            const extraAdults = Math.min(adults, extraGuests);
+            const extraKids = Math.max(0, extraGuests - extraAdults);
+            
+            extraGuestAmount = (extraAdults * PRICE_PER_EXTRA_ADULT) + (extraKids * PRICE_PER_EXTRA_KID);
+        }
+        
         const extraBedAmount = extraBeds * PRICE_PER_EXTRA_BED;
-        const totalAmount = baseAmount + adultAmount + kidAmount + extraBedAmount;
+        const totalAmount = baseAmount + extraGuestAmount + extraBedAmount;
 
         // Update display
         totalDaysSpan.textContent = days;

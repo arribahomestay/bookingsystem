@@ -410,6 +410,38 @@ body::before {
     background: white;
 }
 
+/* Pricing Information */
+.pricing-info {
+    background: #f8f9fa;
+    padding: 25px;
+    border-radius: 15px;
+    border: 2px solid #e1e5e9;
+}
+
+.pricing-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+    padding: 8px 0;
+}
+
+.pricing-item:last-child {
+    margin-bottom: 0;
+}
+
+.pricing-item i {
+    color: #3498db;
+    margin-right: 12px;
+    width: 20px;
+    text-align: center;
+}
+
+.pricing-item span {
+    color: #2c3e50;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
 /* Booking Summary */
 .booking-summary {
     background: #f8f9fa;
