@@ -34,6 +34,18 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize live sun/moon widget
     initializeSunMoonWidget();
+    
+    // Initialize draggable weather widget
+    initializeDraggableWeatherWidget();
+    
+    // Initialize logo click functionality
+    initializeLogoClick();
+    
+    // Initialize BOOK NOW button animation
+    initializeBookNowAnimation();
+    
+    // Initialize homepage loading animation
+    initializeHomepageLoading();
 });
 
 // Weather Widget Functionality
@@ -431,6 +443,262 @@ function initializeSunMoonWidget() {
     // Initialize and update every second
     updateSunMoon();
     setInterval(updateSunMoon, 1000);
+}
+
+// Draggable Weather Widget Functionality
+function initializeDraggableWeatherWidget() {
+    const widget = document.getElementById('weatherWidget');
+    
+    if (!widget) return;
+    
+    let isDragging = false;
+    let startX, startY, initialX, initialY;
+    
+    // Make widget draggable
+    widget.addEventListener('mousedown', startDrag);
+    widget.addEventListener('touchstart', startDrag, { passive: false });
+    
+    function startDrag(e) {
+        // Don't start drag if clicking on buttons or interactive elements
+        if (e.target.closest('.weather-refresh-btn') || 
+            e.target.closest('.weather-toggle-btn') ||
+            e.target.closest('.weather-compact')) {
+            return;
+        }
+        
+        isDragging = true;
+        widget.style.cursor = 'grabbing';
+        
+        if (e.type === 'mousedown') {
+            startX = e.clientX;
+            startY = e.clientY;
+        } else {
+            startX = e.touches[0].clientX;
+            startY = e.touches[0].clientY;
+        }
+        
+        initialX = widget.offsetLeft;
+        initialY = widget.offsetTop;
+        
+        document.addEventListener('mousemove', drag);
+        document.addEventListener('mouseup', stopDrag);
+        document.addEventListener('touchmove', drag, { passive: false });
+        document.addEventListener('touchend', stopDrag);
+        
+        e.preventDefault();
+    }
+    
+    function drag(e) {
+        if (!isDragging) return;
+        
+        let currentX, currentY;
+        if (e.type === 'mousemove') {
+            currentX = e.clientX;
+            currentY = e.clientY;
+        } else {
+            currentX = e.touches[0].clientX;
+            currentY = e.touches[0].clientY;
+        }
+        
+        const deltaX = currentX - startX;
+        const deltaY = currentY - startY;
+        
+        let newX = initialX + deltaX;
+        let newY = initialY + deltaY;
+        
+        // Keep widget within viewport
+        const widgetWidth = widget.offsetWidth;
+        const widgetHeight = widget.offsetHeight;
+        const maxX = window.innerWidth - widgetWidth;
+        const maxY = window.innerHeight - widgetHeight;
+        
+        newX = Math.max(0, Math.min(newX, maxX));
+        newY = Math.max(0, Math.min(newY, maxY));
+        
+        // Use transform for smoother, faster movement
+        widget.style.transform = `translate(${newX - initialX}px, ${newY - initialY}px)`;
+        
+        e.preventDefault();
+    }
+    
+    function stopDrag() {
+        isDragging = false;
+        widget.style.cursor = 'move';
+        
+        // Finalize position
+        const currentTransform = widget.style.transform;
+        const translateMatch = currentTransform.match(/translate\(([^,]+),\s*([^)]+)\)/);
+        if (translateMatch) {
+            const deltaX = parseFloat(translateMatch[1]);
+            const deltaY = parseFloat(translateMatch[2]);
+            const finalX = initialX + deltaX;
+            const finalY = initialY + deltaY;
+            
+            widget.style.left = finalX + 'px';
+            widget.style.top = finalY + 'px';
+            widget.style.transform = '';
+        }
+        
+        document.removeEventListener('mousemove', drag);
+        document.removeEventListener('mouseup', stopDrag);
+        document.removeEventListener('touchmove', drag);
+        document.removeEventListener('touchend', stopDrag);
+    }
+}
+
+// Logo Click Functionality
+function initializeLogoClick() {
+    const logoLink = document.querySelector('.logo-link');
+    
+    if (logoLink) {
+        logoLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Scroll to top of page smoothly
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+            
+            // Update active navigation link
+            const navLinks = document.querySelectorAll('.nav-link');
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === '#home') {
+                    link.classList.add('active');
+                }
+            });
+            
+            // Close mobile menu if open
+            const navMenu = document.getElementById('navMenu');
+            const navToggle = document.getElementById('navToggle');
+            if (navMenu && navToggle) {
+                navMenu.classList.remove('active');
+                navToggle.classList.remove('active');
+            }
+        });
+    }
+}
+
+// BOOK NOW Button Animation
+function initializeBookNowAnimation() {
+    const bookNowButtons = document.querySelectorAll('.booking-btn');
+    
+    bookNowButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            // Prevent default navigation temporarily
+            e.preventDefault();
+            
+            // Add animation class
+            this.classList.add('animate');
+            
+            // Show loading bubble animation
+            showLoadingBubble();
+            
+            // Wait for button animation to complete
+            setTimeout(() => {
+                // Remove button animation
+                this.classList.remove('animate');
+            }, 600);
+            
+            // Wait for complete loading animation, then navigate smoothly
+            setTimeout(() => {
+                // Smooth navigation to booking page
+                const targetUrl = this.getAttribute('href');
+                
+                // Add smooth transition class to body
+                document.body.style.transition = 'all 0.5s ease-in-out';
+                document.body.style.opacity = '0.8';
+                document.body.style.transform = 'scale(0.98)';
+                
+                // Navigate after smooth transition
+                setTimeout(() => {
+                    window.location.href = targetUrl;
+                }, 300);
+            }, 1800); // Total animation time: 0.6s button + 1.2s loading
+        });
+        
+        // Add hover effect
+        button.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-2px)';
+            this.style.boxShadow = '0 8px 25px rgba(52, 152, 219, 0.4)';
+        });
+        
+        button.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+            this.style.boxShadow = '0 4px 15px rgba(52, 152, 219, 0.3)';
+        });
+    });
+}
+
+// Loading Bubble Animation
+function showLoadingBubble() {
+    // Create loading overlay
+    const overlay = document.createElement('div');
+    overlay.className = 'loading-overlay';
+    
+    // Create loading bubble
+    const bubble = document.createElement('div');
+    bubble.className = 'loading-bubble';
+    
+    // Add to page
+    overlay.appendChild(bubble);
+    document.body.appendChild(overlay);
+    
+    // Add smooth transition to body
+    document.body.classList.add('smooth-transition');
+    
+    // Remove loading elements after animation completes
+    setTimeout(() => {
+        // Fade out the loading bubble smoothly
+        overlay.style.transition = 'opacity 0.3s ease-out';
+        overlay.style.opacity = '0';
+        
+        // Remove from DOM after fade
+        setTimeout(() => {
+            if (overlay.parentNode) {
+                overlay.parentNode.removeChild(overlay);
+            }
+            document.body.classList.remove('smooth-transition');
+        }, 300);
+    }, 1200);
+}
+
+// Homepage Loading Animation
+function initializeHomepageLoading() {
+    // Check if this is a return visit (not first load)
+    const isReturnVisit = sessionStorage.getItem('homepageVisited');
+    
+    if (isReturnVisit) {
+        // Show homepage loading animation
+        showHomepageLoading();
+    } else {
+        // Mark as visited for future visits
+        sessionStorage.setItem('homepageVisited', 'true');
+    }
+    
+    // Add entrance animation to main content
+    const mainContent = document.querySelector('.hero');
+    if (mainContent) {
+        mainContent.classList.add('homepage-entrance');
+    }
+}
+
+// Show Homepage Loading Animation
+function showHomepageLoading() {
+    // Create loading overlay
+    const loadingOverlay = document.createElement('div');
+    loadingOverlay.className = 'homepage-loading';
+    
+    // Add to page
+    document.body.appendChild(loadingOverlay);
+    
+    // Remove loading after animation completes
+    setTimeout(() => {
+        if (loadingOverlay.parentNode) {
+            loadingOverlay.parentNode.removeChild(loadingOverlay);
+        }
+    }, 1500);
 }
 
 // Navbar background change on scroll

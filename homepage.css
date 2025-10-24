@@ -64,6 +64,293 @@ body {
     margin-right: 8px;
 }
 
+.logo-link {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    gap: 10px;
+}
+
+.logo-link:hover {
+    transform: scale(1.05);
+    opacity: 0.8;
+}
+
+.logo-link:active {
+    transform: scale(0.95);
+}
+
+.logo-link h2 {
+    margin: 0;
+    color: inherit;
+}
+
+/* BOOK NOW Button Bubble Animation */
+.booking-btn {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.booking-btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    z-index: 0;
+}
+
+.booking-btn:hover::before {
+    width: 300px;
+    height: 300px;
+}
+
+.booking-btn:active::before {
+    width: 400px;
+    height: 400px;
+    background: rgba(255, 255, 255, 0.5);
+}
+
+.booking-btn span {
+    position: relative;
+    z-index: 1;
+}
+
+/* BOOK NOW Click Animation */
+@keyframes bookNowBubble {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+    }
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 8px 25px rgba(52, 152, 219, 0.5);
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+    }
+}
+
+.booking-btn.animate {
+    animation: bookNowBubble 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Page Transition Effect */
+@keyframes pageTransition {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.1);
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(0.9);
+        opacity: 0;
+    }
+}
+
+.page-transition {
+    animation: pageTransition 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+/* Loading Bubble Animation */
+.loading-bubble {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    width: 100px;
+    height: 100px;
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    border-radius: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 20px 40px rgba(52, 152, 219, 0.3);
+    animation: loadingBubbleExpand 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+.loading-bubble::before {
+    content: '';
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-top: 3px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.loading-bubble::after {
+    content: 'BOOKING...';
+    position: absolute;
+    color: white;
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 1px;
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes loadingBubbleExpand {
+    0% {
+        transform: translate(-50%, -50%) scale(0);
+        opacity: 0;
+    }
+    15% {
+        transform: translate(-50%, -50%) scale(1.1);
+        opacity: 0.9;
+    }
+    30% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
+    }
+    70% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
+    }
+    85% {
+        transform: translate(-50%, -50%) scale(1.1);
+        opacity: 0.8;
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(1.3);
+        opacity: 0;
+    }
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 0.7; }
+    50% { opacity: 1; }
+}
+
+/* Loading overlay background */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(5px);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Smooth page transition with loading */
+.smooth-transition {
+    transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Homepage Loading Animation */
+.homepage-loading {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: homepageLoad 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+.homepage-loading::before {
+    content: '';
+    position: absolute;
+    width: 120px;
+    height: 120px;
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    border-top: 4px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.homepage-loading::after {
+    content: 'WELCOME TO ARRIBA HOMESTAY';
+    position: absolute;
+    color: white;
+    font-weight: 700;
+    font-size: 18px;
+    letter-spacing: 2px;
+    text-align: center;
+    animation: welcomePulse 2s ease-in-out infinite;
+    margin-top: 80px;
+}
+
+@keyframes homepageLoad {
+    0% {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    20% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    80% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: scale(1.1);
+    }
+}
+
+@keyframes welcomePulse {
+    0%, 100% { 
+        opacity: 0.8;
+        transform: scale(1);
+    }
+    50% { 
+        opacity: 1;
+        transform: scale(1.05);
+    }
+}
+
+/* Homepage entrance animation */
+.homepage-entrance {
+    animation: homepageEntrance 1s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+@keyframes homepageEntrance {
+    0% {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 .nav-menu {
     display: flex;
     align-items: center;
@@ -1228,13 +1515,98 @@ body {
         background-color: white;
         width: 100%;
         text-align: center;
-        transition: 0.3s;
+        transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         box-shadow: 0 10px 27px rgba(0, 0, 0, 0.05);
         padding: 20px 0;
+        z-index: 9999;
+        overflow: hidden;
     }
 
     .nav-menu.active {
         left: 0;
+        animation: bubbleIn 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    }
+
+    /* Backdrop overlay for mobile menu */
+    .nav-menu.active::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.1);
+        z-index: -1;
+        backdrop-filter: blur(2px);
+    }
+
+    .nav-menu:not(.active) {
+        animation: bubbleOut 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    }
+
+    /* Bubble Effect Animations - From Right */
+    @keyframes bubbleIn {
+        0% {
+            transform: translateX(100%) scale(0.3) rotate(10deg);
+            opacity: 0;
+            border-radius: 50%;
+        }
+        50% {
+            transform: translateX(-5%) scale(1.1) rotate(-5deg);
+            opacity: 0.8;
+            border-radius: 30%;
+        }
+        100% {
+            transform: translateX(0) scale(1) rotate(0deg);
+            opacity: 1;
+            border-radius: 0%;
+        }
+    }
+
+    @keyframes bubbleOut {
+        0% {
+            transform: translateX(0) scale(1) rotate(0deg);
+            opacity: 1;
+            border-radius: 0%;
+        }
+        50% {
+            transform: translateX(5%) scale(1.1) rotate(5deg);
+            opacity: 0.8;
+            border-radius: 30%;
+        }
+        100% {
+            transform: translateX(100%) scale(0.3) rotate(-10deg);
+            opacity: 0;
+            border-radius: 50%;
+        }
+    }
+
+    /* Individual menu item animations - From Right */
+    .nav-menu.active .nav-link {
+        animation: slideInBubble 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        opacity: 0;
+        transform: translateX(50px) scale(0.8);
+    }
+
+    .nav-menu.active .nav-link:nth-child(1) { animation-delay: 0.1s; }
+    .nav-menu.active .nav-link:nth-child(2) { animation-delay: 0.2s; }
+    .nav-menu.active .nav-link:nth-child(3) { animation-delay: 0.3s; }
+    .nav-menu.active .nav-link:nth-child(4) { animation-delay: 0.4s; }
+    .nav-menu.active .nav-link:nth-child(5) { animation-delay: 0.5s; }
+
+    @keyframes slideInBubble {
+        0% {
+            opacity: 0;
+            transform: translateX(50px) scale(0.8);
+        }
+        50% {
+            opacity: 0.7;
+            transform: translateX(-5px) scale(1.05);
+        }
+        100% {
+            opacity: 1;
+            transform: translateX(0) scale(1);
+        }
     }
 
     .nav-toggle {
@@ -1243,14 +1615,32 @@ body {
 
     .nav-toggle.active .bar:nth-child(2) {
         opacity: 0;
+        transform: scaleX(0);
+        transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     }
 
     .nav-toggle.active .bar:nth-child(1) {
         transform: translateY(8px) rotate(45deg);
+        transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     }
 
     .nav-toggle.active .bar:nth-child(3) {
         transform: translateY(-8px) rotate(-45deg);
+        transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
+    /* Enhanced burger menu hover effects */
+    .nav-toggle:hover .bar {
+        transform: scaleY(1.2);
+        transition: all 0.2s ease;
+    }
+
+    .nav-toggle:hover .bar:nth-child(1) {
+        transform: translateY(-2px);
+    }
+
+    .nav-toggle:hover .bar:nth-child(3) {
+        transform: translateY(2px);
     }
 
     .hero {
@@ -1498,14 +1888,14 @@ html {
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.2);
     width: 280px;
-    z-index: 1000;
-    transition: all 0.3s ease;
+    z-index: 100;
+    cursor: move;
+    transition: none;
+    user-select: none;
+    will-change: transform;
+    transform: translateZ(0);
 }
 
-.floating-weather-widget:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
-}
 
 .weather-header {
     display: flex;
@@ -1743,6 +2133,7 @@ html {
         width: 160px;
         padding: 8px;
         font-size: 12px;
+        z-index: 100;
     }
 
     .weather-header {
