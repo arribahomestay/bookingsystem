@@ -381,13 +381,6 @@ function initializeSunMoonWidget() {
         const sunrise = calculateSunrise(LATITUDE, LONGITUDE, philippinesTime);
         const sunset = calculateSunset(LATITUDE, LONGITUDE, philippinesTime);
         
-        // Update sunset time display
-        sunsetTime.textContent = sunset.toLocaleTimeString('en-US', {
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: true
-        });
-        
         // Determine if it's day or night
         const currentHour = philippinesTime.getHours();
         const sunriseHour = sunrise.getHours();

@@ -1434,15 +1434,6 @@ html {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.sunset-info {
-    font-size: 8px;
-    color: #7f8c8d;
-    margin-top: 1px;
-    text-align: center;
-    background: rgba(255, 255, 255, 0.8);
-    padding: 1px 4px;
-    border-radius: 6px;
-}
 
 /* Animations */
 @keyframes sunRotate {
@@ -1493,10 +1484,6 @@ html {
         padding: 1px 4px;
     }
     
-    .sunset-info {
-        font-size: 7px;
-        padding: 1px 3px;
-    }
 }
 
 /* Floating Weather Widget Styles */
