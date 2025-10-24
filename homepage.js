@@ -31,6 +31,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize contact form
     initializeContactForm();
+    
+    // Initialize live sun/moon widget
+    initializeSunMoonWidget();
 });
 
 // Weather Widget Functionality
@@ -261,6 +264,181 @@ window.addEventListener('scroll', function() {
         }
     });
 });
+
+// Live Sun/Moon Widget Functionality
+function initializeSunMoonWidget() {
+    const widget = document.getElementById('sunMoonWidget');
+    const sunIcon = document.getElementById('sunIcon');
+    const moonIcon = document.getElementById('moonIcon');
+    const timeDisplay = document.getElementById('timeDisplay');
+    const sunsetTime = document.getElementById('sunsetTime');
+    
+    // Siargao coordinates
+    const LATITUDE = 9.7594;
+    const LONGITUDE = 126.0531;
+    
+    let isDragging = false;
+    let startX, startY, initialX, initialY;
+    
+    // Make widget draggable
+    widget.addEventListener('mousedown', startDrag);
+    widget.addEventListener('touchstart', startDrag, { passive: false });
+    
+    function startDrag(e) {
+        isDragging = true;
+        widget.style.cursor = 'grabbing';
+        
+        if (e.type === 'mousedown') {
+            startX = e.clientX;
+            startY = e.clientY;
+        } else {
+            startX = e.touches[0].clientX;
+            startY = e.touches[0].clientY;
+        }
+        
+        initialX = widget.offsetLeft;
+        initialY = widget.offsetTop;
+        
+        document.addEventListener('mousemove', drag);
+        document.addEventListener('mouseup', stopDrag);
+        document.addEventListener('touchmove', drag, { passive: false });
+        document.addEventListener('touchend', stopDrag);
+        
+        e.preventDefault();
+    }
+    
+    function drag(e) {
+        if (!isDragging) return;
+        
+        let currentX, currentY;
+        if (e.type === 'mousemove') {
+            currentX = e.clientX;
+            currentY = e.clientY;
+        } else {
+            currentX = e.touches[0].clientX;
+            currentY = e.touches[0].clientY;
+        }
+        
+        const deltaX = currentX - startX;
+        const deltaY = currentY - startY;
+        
+        let newX = initialX + deltaX;
+        let newY = initialY + deltaY;
+        
+        // Keep widget within viewport with faster boundary detection
+        const widgetWidth = widget.offsetWidth;
+        const widgetHeight = widget.offsetHeight;
+        const maxX = window.innerWidth - widgetWidth;
+        const maxY = window.innerHeight - widgetHeight;
+        
+        newX = Math.max(0, Math.min(newX, maxX));
+        newY = Math.max(0, Math.min(newY, maxY));
+        
+        // Use transform for smoother, faster movement
+        widget.style.transform = `translate(${newX - initialX}px, ${newY - initialY}px)`;
+        
+        e.preventDefault();
+    }
+    
+    function stopDrag() {
+        isDragging = false;
+        widget.style.cursor = 'move';
+        
+        // Finalize position
+        const currentTransform = widget.style.transform;
+        const translateMatch = currentTransform.match(/translate\(([^,]+),\s*([^)]+)\)/);
+        if (translateMatch) {
+            const deltaX = parseFloat(translateMatch[1]);
+            const deltaY = parseFloat(translateMatch[2]);
+            const finalX = initialX + deltaX;
+            const finalY = initialY + deltaY;
+            
+            widget.style.left = finalX + 'px';
+            widget.style.top = finalY + 'px';
+            widget.style.transform = '';
+        }
+        
+        document.removeEventListener('mousemove', drag);
+        document.removeEventListener('mouseup', stopDrag);
+        document.removeEventListener('touchmove', drag);
+        document.removeEventListener('touchend', stopDrag);
+    }
+    
+    // Update time and sun/moon display
+    function updateSunMoon() {
+        const now = new Date();
+        const philippinesTime = new Date(now.toLocaleString("en-US", {timeZone: "Asia/Manila"}));
+        
+        // Update time display
+        const timeString = philippinesTime.toLocaleTimeString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true
+        });
+        timeDisplay.textContent = timeString;
+        
+        // Calculate sunrise and sunset for today
+        const sunrise = calculateSunrise(LATITUDE, LONGITUDE, philippinesTime);
+        const sunset = calculateSunset(LATITUDE, LONGITUDE, philippinesTime);
+        
+        // Update sunset time display
+        sunsetTime.textContent = sunset.toLocaleTimeString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true
+        });
+        
+        // Determine if it's day or night
+        const currentHour = philippinesTime.getHours();
+        const sunriseHour = sunrise.getHours();
+        const sunsetHour = sunset.getHours();
+        
+        const isDay = currentHour >= sunriseHour && currentHour < sunsetHour;
+        
+        // Update sun/moon display
+        if (isDay) {
+            sunIcon.style.display = 'block';
+            moonIcon.style.display = 'none';
+            widget.className = 'live-sun-moon-widget day';
+        } else {
+            sunIcon.style.display = 'none';
+            moonIcon.style.display = 'block';
+            widget.className = 'live-sun-moon-widget night';
+        }
+    }
+    
+    // Calculate sunrise time
+    function calculateSunrise(lat, lng, date) {
+        const dayOfYear = Math.floor((date - new Date(date.getFullYear(), 0, 0)) / 86400000);
+        const declination = 23.45 * Math.sin((284 + dayOfYear) * Math.PI / 180);
+        const hourAngle = Math.acos(-Math.tan(lat * Math.PI / 180) * Math.tan(declination * Math.PI / 180));
+        const sunrise = 12 - hourAngle * 12 / Math.PI;
+        
+        const sunriseDate = new Date(date);
+        sunriseDate.setHours(Math.floor(sunrise));
+        sunriseDate.setMinutes((sunrise % 1) * 60);
+        
+        return sunriseDate;
+    }
+    
+    // Calculate sunset time
+    function calculateSunset(lat, lng, date) {
+        const dayOfYear = Math.floor((date - new Date(date.getFullYear(), 0, 0)) / 86400000);
+        const declination = 23.45 * Math.sin((284 + dayOfYear) * Math.PI / 180);
+        const hourAngle = Math.acos(-Math.tan(lat * Math.PI / 180) * Math.tan(declination * Math.PI / 180));
+        const sunset = 12 + hourAngle * 12 / Math.PI;
+        
+        const sunsetDate = new Date(date);
+        sunsetDate.setHours(Math.floor(sunset));
+        sunsetDate.setMinutes((sunset % 1) * 60);
+        
+        return sunsetDate;
+    }
+    
+    // Initialize and update every second
+    updateSunMoon();
+    setInterval(updateSunMoon, 1000);
+}
 
 // Navbar background change on scroll
 window.addEventListener('scroll', function() {

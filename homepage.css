@@ -1369,6 +1369,136 @@ html {
     animation: fadeInUp 0.6s ease-out;
 }
 
+/* Live Sun/Moon Widget Styles */
+.live-sun-moon-widget {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    width: 80px;
+    height: 80px;
+    z-index: 1001;
+    cursor: move;
+    user-select: none;
+    will-change: transform;
+    transform: translateZ(0);
+    transition: none;
+}
+
+.sun-moon-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.sun-moon-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    transition: all 0.5s ease;
+}
+
+.sun-moon-icon i {
+    font-size: 24px;
+    transition: all 0.5s ease;
+}
+
+#sunIcon {
+    color: #ffd700;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+    animation: sunRotate 20s linear infinite;
+}
+
+#moonIcon {
+    color: #c0c0c0;
+    text-shadow: 0 0 10px rgba(192, 192, 192, 0.5);
+    animation: moonGlow 3s ease-in-out infinite alternate;
+}
+
+.time-display {
+    font-size: 10px;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-top: 2px;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 2px 6px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.sunset-info {
+    font-size: 8px;
+    color: #7f8c8d;
+    margin-top: 1px;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.8);
+    padding: 1px 4px;
+    border-radius: 6px;
+}
+
+/* Animations */
+@keyframes sunRotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@keyframes moonGlow {
+    from { 
+        text-shadow: 0 0 5px rgba(192, 192, 192, 0.3);
+        transform: scale(1);
+    }
+    to { 
+        text-shadow: 0 0 15px rgba(192, 192, 192, 0.8);
+        transform: scale(1.05);
+    }
+}
+
+/* Day/Night transitions */
+.live-sun-moon-widget.day {
+    background: radial-gradient(circle, rgba(255, 215, 0, 0.1) 0%, transparent 70%);
+}
+
+.live-sun-moon-widget.night {
+    background: radial-gradient(circle, rgba(192, 192, 192, 0.1) 0%, transparent 70%);
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .live-sun-moon-widget {
+        top: 10px;
+        left: 10px;
+        width: 70px;
+        height: 70px;
+    }
+    
+    .sun-moon-icon {
+        width: 45px;
+        height: 45px;
+    }
+    
+    .sun-moon-icon i {
+        font-size: 20px;
+    }
+    
+    .time-display {
+        font-size: 9px;
+        padding: 1px 4px;
+    }
+    
+    .sunset-info {
+        font-size: 7px;
+        padding: 1px 3px;
+    }
+}
+
 /* Floating Weather Widget Styles */
 .floating-weather-widget {
     position: fixed;
