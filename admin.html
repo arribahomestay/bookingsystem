@@ -146,7 +146,29 @@
 
         <!-- Main Content -->
         <main class="main-content">
-            <!-- Header -->
+            <!-- Mobile Header -->
+            <div class="mobile-header">
+                <div class="mobile-header-left">
+                    <div class="account-icon" id="mobileAccountIcon">
+                        <i class="fas fa-user-circle"></i>
+                        <div class="mobile-dropdown-menu" id="mobileAccountDropdown">
+                            <a href="#" id="mobileLogoutBtn" onclick="logout()">
+                                <i class="fas fa-sign-out-alt"></i>
+                                Logout
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <h1 id="mobilePageTitle">Analytics Dashboard</h1>
+                <div class="mobile-header-right">
+                    <div class="notification-bell" onclick="toggleNotificationDropdown()">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-count" id="mobileNotificationCount">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Desktop Header -->
             <header class="main-header">
                 <h1 id="pageTitle">Analytics Dashboard</h1>
                 <div class="header-actions">

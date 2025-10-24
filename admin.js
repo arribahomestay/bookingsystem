@@ -260,6 +260,11 @@ async function loadInitialData() {
         } else if (currentSection === 'calendar') {
             generateCalendar();
         }
+        
+        // Generate mobile cards if on mobile
+        if (window.innerWidth <= 768) {
+            generateMobileBookingCards(filteredBookings);
+        }
 
         // Update notification count
         updateNotificationCount();
@@ -980,6 +985,11 @@ function displayBookings(bookings) {
         const row = createBookingRow(booking);
         tableBody.appendChild(row);
     });
+    
+    // Generate mobile cards if on mobile
+    if (window.innerWidth <= 768) {
+        generateMobileBookingCards(bookings);
+    }
 }
 
 function createBookingRow(booking) {
@@ -1085,6 +1095,11 @@ function displayRecords(records) {
         const row = createRecordRow(record);
         tableBody.appendChild(row);
     });
+    
+    // Generate mobile cards if on mobile
+    if (window.innerWidth <= 768) {
+        generateMobileRecordCards(pageRecords);
+    }
 }
 
 function createRecordRow(record) {
@@ -2691,7 +2706,8 @@ document.addEventListener('click', function(event) {
     const mobileToggle = document.querySelector('.mobile-menu-toggle');
     
     if (window.innerWidth <= 768) {
-        if (!sidebar.contains(event.target) && !mobileToggle.contains(event.target)) {
+        // Check if mobile toggle exists (it might not exist with bottom navigation)
+        if (!sidebar.contains(event.target) && (!mobileToggle || !mobileToggle.contains(event.target))) {
             closeMobileMenu();
         }
     }
@@ -2841,6 +2857,10 @@ function displayReviews(reviews) {
     
     if (reviews.length === 0) {
         tableBody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #666;">No reviews found</td></tr>';
+        // Generate mobile cards if on mobile
+        if (window.innerWidth <= 768) {
+            generateMobileReviewCards([]);
+        }
         return;
     }
     
@@ -2900,6 +2920,11 @@ function displayReviews(reviews) {
             </tr>
         `;
     }).join('');
+    
+    // Generate mobile cards if on mobile
+    if (window.innerWidth <= 768) {
+        generateMobileReviewCards(reviews);
+    }
 }
 
 // View review details
@@ -3895,17 +3920,30 @@ function loadSuggestions() {
                 
                 if (snapshot.empty) {
                     noDataDiv.style.display = 'block';
+                    // Generate mobile cards if on mobile
+                    if (window.innerWidth <= 768) {
+                        generateMobileSuggestionCards([]);
+                    }
                     return;
                 }
                 
                 noDataDiv.style.display = 'none';
                 
+                // Collect all suggestions for mobile cards
+                const allSuggestions = [];
+                
                 // Add each suggestion to the table
                 snapshot.forEach(doc => {
                     const suggestion = doc.data();
                     suggestion.id = doc.id;
+                    allSuggestions.push(suggestion);
                     addSuggestionToTable(suggestion);
                 });
+                
+                // Generate mobile cards if on mobile
+                if (window.innerWidth <= 768) {
+                    generateMobileSuggestionCards(allSuggestions);
+                }
             }, (error) => {
                 console.error('Error loading suggestions:', error);
                 loadingDiv.style.display = 'none';
@@ -4100,7 +4138,9 @@ window.updateAnalytics = updateAnalytics;
 // Mobile Booking Cards Generation
 function generateMobileBookingCards(bookings) {
     const mobileCardsContainer = document.getElementById('mobileBookingsCards');
-    if (!mobileCardsContainer) return;
+    if (!mobileCardsContainer) {
+        return;
+    }
     
     if (!bookings || bookings.length === 0) {
         mobileCardsContainer.innerHTML = `
@@ -4416,15 +4456,39 @@ function navigateToSection(sectionName) {
         
         // Update page title
         const pageTitle = document.getElementById('pageTitle');
+        const mobilePageTitle = document.getElementById('mobilePageTitle');
+        const titles = {
+            'analytics': 'Analytics Dashboard',
+            'suggestions': 'Customer Suggestions',
+            'booking': 'Booking Management',
+            'records': 'Booking Records',
+            'reviews': 'Customer Reviews'
+        };
+        const titleText = titles[sectionName] || 'Admin Dashboard';
+        
         if (pageTitle) {
-            const titles = {
-                'analytics': 'Analytics Dashboard',
-                'suggestions': 'Customer Suggestions',
-                'booking': 'Booking Management',
-                'records': 'Booking Records',
-                'reviews': 'Customer Reviews'
-            };
-            pageTitle.textContent = titles[sectionName] || 'Admin Dashboard';
+            pageTitle.textContent = titleText;
+        }
+        if (mobilePageTitle) {
+            mobilePageTitle.textContent = titleText;
+        }
+        
+        // Generate mobile cards if on mobile
+        if (window.innerWidth <= 768) {
+            switch(sectionName) {
+                case 'booking':
+                    generateMobileBookingCards(filteredBookings);
+                    break;
+                case 'suggestions':
+                    generateMobileSuggestionCards(window.currentSuggestions || []);
+                    break;
+                case 'records':
+                    generateMobileRecordCards(filteredRecords);
+                    break;
+                case 'reviews':
+                    generateMobileReviewCards(window.currentReviews || []);
+                    break;
+            }
         }
     }
 }
@@ -4437,14 +4501,24 @@ function handleScroll() {
     if (!bottomNav) return;
     
     const currentScrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    const scrollDifference = Math.abs(currentScrollTop - lastScrollTop);
     
-    // Show/hide based on scroll direction
-    if (currentScrollTop > lastScrollTop && currentScrollTop > 100) {
-        // Scrolling down - hide nav
-        bottomNav.classList.add('hidden');
-    } else {
-        // Scrolling up - show nav
-        bottomNav.classList.remove('hidden');
+    // Only process if there's significant scroll movement
+    if (scrollDifference < 3) return;
+    
+    // Show/hide based on scroll direction with faster response
+    if (currentScrollTop > lastScrollTop && currentScrollTop > 30) {
+        // Scrolling down - hide nav with smooth transition
+        if (!bottomNav.classList.contains('hidden')) {
+            bottomNav.style.transition = 'transform 0.15s ease-out';
+            bottomNav.classList.add('hidden');
+        }
+    } else if (currentScrollTop < lastScrollTop) {
+        // Scrolling up - show nav immediately with fast response
+        if (bottomNav.classList.contains('hidden')) {
+            bottomNav.style.transition = 'transform 0.1s ease-in';
+            bottomNav.classList.remove('hidden');
+        }
     }
     
     lastScrollTop = currentScrollTop;
@@ -4469,8 +4543,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (window.innerWidth <= 768) {
         initializeBottomNavigation();
         
-        // Add scroll listener with throttling
-        window.addEventListener('scroll', throttle(handleScroll, 100));
+        // Add scroll listener with throttling for fast response
+        window.addEventListener('scroll', throttle(handleScroll, 25));
     }
     
     // Handle resize events
@@ -4500,3 +4574,45 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
+
+// Mobile Account Icon Functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const mobileAccountIcon = document.getElementById('mobileAccountIcon');
+    const mobileAccountDropdown = document.getElementById('mobileAccountDropdown');
+    const mobileLogoutBtn = document.getElementById('mobileLogoutBtn');
+    
+    if (mobileAccountIcon && mobileAccountDropdown) {
+        // Toggle dropdown when account icon is clicked
+        mobileAccountIcon.addEventListener('click', function(e) {
+            e.stopPropagation();
+            mobileAccountDropdown.classList.toggle('active');
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!mobileAccountIcon.contains(e.target)) {
+                mobileAccountDropdown.classList.remove('active');
+            }
+        });
+    }
+    
+    // Logout functionality
+    if (mobileLogoutBtn) {
+        mobileLogoutBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            logout();
+        });
+    }
+});
+
+// Logout function
+function logout() {
+    if (confirm('Are you sure you want to logout?')) {
+        // Clear any stored data
+        localStorage.clear();
+        sessionStorage.clear();
+        
+        // Redirect to login page or homepage
+        window.location.href = 'index.html';
+    }
+}

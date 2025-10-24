@@ -673,12 +673,25 @@ document.addEventListener('DOMContentLoaded', function() {
         const kids = parseInt(kidsInput.value) || 0;
         const extraBeds = extraBedCheck.checked ? parseInt(extraBedCount.value) || 0 : 0;
         
-        const baseAmount = nights * PRICE_PER_NIGHT;
-        const adultAmount = adults * PRICE_PER_ADULT;
-        const kidAmount = kids * PRICE_PER_KID;
-        const extraBedAmount = extraBeds * PRICE_PER_EXTRA_BED;
+        // Calculate total amount with correct pricing structure
+        const totalGuests = adults + kids;
+        const baseAmount = nights * BASE_RATE; // Base rate includes up to 5 guests
         
-        return baseAmount + adultAmount + kidAmount + extraBedAmount;
+        // Calculate extra charges for guests over 5
+        let extraGuestAmount = 0;
+        if (totalGuests > MAX_GUESTS_INCLUDED) {
+            const extraGuests = totalGuests - MAX_GUESTS_INCLUDED;
+            // Calculate how many adults and kids are in the extra guests
+            const extraAdults = Math.min(adults, extraGuests);
+            const extraKids = Math.max(0, extraGuests - extraAdults);
+            
+            extraGuestAmount = (extraAdults * PRICE_PER_EXTRA_ADULT) + (extraKids * PRICE_PER_EXTRA_KID);
+        }
+        
+        const extraBedAmount = extraBeds * PRICE_PER_EXTRA_BED;
+        const totalAmount = baseAmount + extraGuestAmount + extraBedAmount;
+        
+        return totalAmount;
     }
 
     // Submit booking to Firebase with fallback to localStorage
