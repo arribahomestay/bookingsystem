@@ -2021,13 +2021,14 @@ html {
     font-size: 16px;
 }
 
-.weather-main {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 15px;
-    margin-bottom: 15px;
-}
+    .weather-main {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 15px;
+        margin-bottom: 15px;
+        padding: 0 10px;
+    }
 
 .weather-temp {
     font-size: 32px;
@@ -2139,15 +2140,16 @@ html {
     .floating-weather-widget {
         top: 80px;
         right: 10px;
-        width: 160px;
+        width: 140px;
         padding: 8px;
-        font-size: 12px;
+        font-size: 10px;
         z-index: 100;
+        max-height: none;
     }
 
     .weather-header {
-        margin-bottom: 8px;
-        padding: 4px;
+        margin-bottom: 6px;
+        padding: 3px;
     }
 
     .weather-compact {
@@ -2155,68 +2157,83 @@ html {
     }
 
     .weather-compact-main {
-        gap: 6px;
+        gap: 5px;
     }
 
     .weather-temp-compact {
-        font-size: 14px;
-    }
-
-    .weather-location-compact {
-        font-size: 9px;
-    }
-
-    .weather-header i {
         font-size: 12px;
     }
 
+    .weather-location-compact {
+        font-size: 8px;
+    }
+
+    .weather-header i {
+        font-size: 8px;
+    }
+
     .weather-refresh-btn {
-        font-size: 10px;
-        padding: 2px;
+        font-size: 8px;
+        padding: 1px;
     }
 
     .weather-toggle-btn {
-        font-size: 10px;
-        padding: 2px;
+        font-size: 8px;
+        padding: 1px;
     }
 
     .weather-temp {
-        font-size: 18px;
+        font-size: 16px;
     }
 
     .weather-icon {
-        font-size: 20px;
+        font-size: 18px;
     }
 
     .weather-details {
         grid-template-columns: 1fr;
-        gap: 4px;
-        font-size: 9px;
+        gap: 3px;
+        font-size: 8px;
+        margin-bottom: 5px;
     }
 
     .weather-detail {
-        font-size: 9px;
+        font-size: 8px;
+        padding: 1px 0;
     }
 
     .weather-detail i {
-        font-size: 9px;
+        font-size: 8px;
     }
 
     .weather-location {
-        font-size: 9px;
-        margin-top: 6px;
+        font-size: 8px;
+        margin-top: 2px;
+        margin-bottom: 3px;
     }
 
     .weather-loading {
-        font-size: 9px;
+        font-size: 7px;
     }
 
     .weather-loading i {
-        font-size: 10px;
+        font-size: 8px;
     }
 
     .weather-error {
-        font-size: 9px;
-        padding: 6px;
+        font-size: 7px;
+        padding: 3px;
+    }
+
+    .weather-content {
+        max-height: none;
+        overflow: visible;
+        padding: 5px 8px 8px 15px;
+    }
+
+    .weather-main {
+        margin-bottom: 8px;
+        padding: 0 10px 0 15px;
+        gap: 8px;
     }
 }
