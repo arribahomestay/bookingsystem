@@ -2133,6 +2133,7 @@ button:has(.fa-refresh) {
 }
 
 /* Receipt Modal Styles */
+/* Higher z-index than booking modal (10000) to appear on top */
 .receipt-modal {
     position: fixed;
     top: 0;
@@ -2143,7 +2144,7 @@ button:has(.fa-refresh) {
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 2000;
+    z-index: 15000;
 }
 
 .receipt-modal-content {
