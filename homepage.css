@@ -1762,7 +1762,7 @@ html {
 /* Live Sun/Moon Widget Styles */
 .live-sun-moon-widget {
     position: fixed;
-    top: 20px;
+    top: 80px;
     left: 20px;
     width: 80px;
     height: 80px;
@@ -1854,7 +1854,7 @@ html {
 /* Mobile responsiveness */
 @media (max-width: 768px) {
     .live-sun-moon-widget {
-        top: 10px;
+        top: 80px;
         left: 10px;
         width: 70px;
         height: 70px;
@@ -1879,7 +1879,7 @@ html {
 /* Floating Weather Widget Styles */
 .floating-weather-widget {
     position: fixed;
-    top: 20px;
+    top: 80px;
     right: 20px;
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(10px);
