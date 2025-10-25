@@ -1,4 +1,5 @@
 // Admin Dashboard JavaScript with Firebase Integration
+console.log('Admin.js loaded successfully');
 
 // EmailJS Configuration
 const EMAILJS_CONFIG = {
@@ -390,6 +391,7 @@ function playNotificationSound() {
 // Toggle notification dropdown
 window.toggleNotificationDropdown = function() {
     const dropdown = document.getElementById('notificationDropdown');
+    
     if (dropdown) {
         dropdown.classList.toggle('show');
         
@@ -2931,7 +2933,9 @@ function updateMobileClickHandlers() {
 // Initialize the admin dashboard
 document.addEventListener('DOMContentLoaded', function() {
     loadInitialData();
-    setupRealTimeReviewListeners();
+    setupRealTimeReviewListeners().catch(error => {
+        console.error('Error setting up review listeners:', error);
+    });
     
     // Load reviews initially if we're on the reviews page
     if (window.location.hash === '#reviews') {
@@ -2951,13 +2955,16 @@ window.addEventListener('hashchange', function() {
 });
 
 // Set up real-time listeners for reviews
-function setupRealTimeReviewListeners() {
+async function setupRealTimeReviewListeners() {
     if (!db) {
         console.log('Firebase not available for real-time listeners');
         return;
     }
     
     try {
+        // Import Firebase functions
+        const { collection, query, onSnapshot } = await import('https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js');
+        
         // Set up real-time listener for reviews
         const reviewsRef = collection(db, 'reviews');
         const reviewsQuery = query(reviewsRef); // Simplified query without ordering
@@ -4765,6 +4772,19 @@ document.addEventListener('DOMContentLoaded', function() {
         document.addEventListener('click', function(e) {
             if (!mobileNotificationBell.contains(e.target)) {
                 mobileNotificationDropdown.classList.remove('show');
+            }
+        });
+    }
+    
+    // Desktop notification dropdown functionality
+    const desktopNotificationBell = document.querySelector('.header-actions .notification-bell');
+    const desktopNotificationDropdown = document.getElementById('notificationDropdown');
+    
+    if (desktopNotificationBell && desktopNotificationDropdown) {
+        // Close notification dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!desktopNotificationBell.contains(e.target) && !desktopNotificationDropdown.contains(e.target)) {
+                desktopNotificationDropdown.classList.remove('show');
             }
         });
     }

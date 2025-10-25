@@ -424,7 +424,120 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Initialize form
     function initializeForm() {
+        // Initialize phone number input with number-only restriction
+        initializePhoneInput();
+        
         updateBookingSummary();
+    }
+
+    // Initialize phone number input with number-only restriction
+    function initializePhoneInput() {
+        const phoneInput = document.getElementById('phoneNumber');
+        const countryCodeSelect = document.getElementById('countryCode');
+        
+        // Restrict input to numbers only
+        phoneInput.addEventListener('input', function(e) {
+            // Remove any non-numeric characters
+            let value = e.target.value.replace(/[^0-9]/g, '');
+            e.target.value = value;
+        });
+        
+        // Prevent non-numeric characters on keypress
+        phoneInput.addEventListener('keypress', function(e) {
+            // Allow: backspace, delete, tab, escape, enter
+            if ([8, 9, 27, 13, 46].indexOf(e.keyCode) !== -1 ||
+                // Allow: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
+                (e.keyCode === 65 && e.ctrlKey === true) ||
+                (e.keyCode === 67 && e.ctrlKey === true) ||
+                (e.keyCode === 86 && e.ctrlKey === true) ||
+                (e.keyCode === 88 && e.ctrlKey === true)) {
+                return;
+            }
+            // Ensure that it is a number and stop the keypress
+            if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
+                e.preventDefault();
+            }
+        });
+        
+        // Handle paste events to filter out non-numeric characters
+        phoneInput.addEventListener('paste', function(e) {
+            e.preventDefault();
+            const paste = (e.clipboardData || window.clipboardData).getData('text');
+            const numbersOnly = paste.replace(/[^0-9]/g, '');
+            phoneInput.value = numbersOnly;
+        });
+        
+        // Update phone number format based on country code
+        countryCodeSelect.addEventListener('change', function() {
+            const countryCode = this.value;
+            const phoneInput = document.getElementById('phoneNumber');
+            
+            // Clear existing value when country changes
+            phoneInput.value = '';
+            
+            // Set placeholder based on country
+            switch(countryCode) {
+                case '+63': // Philippines
+                    phoneInput.placeholder = '9XX XXX XXXX';
+                    break;
+                case '+1': // USA/Canada
+                    phoneInput.placeholder = 'XXX XXX XXXX';
+                    break;
+                case '+44': // UK
+                    phoneInput.placeholder = 'XXXX XXX XXX';
+                    break;
+                case '+49': // Germany
+                    phoneInput.placeholder = 'XXX XXXXXXX';
+                    break;
+                case '+33': // France
+                    phoneInput.placeholder = 'X XX XX XX XX';
+                    break;
+                case '+39': // Italy
+                    phoneInput.placeholder = 'XXX XXX XXXX';
+                    break;
+                case '+34': // Spain
+                    phoneInput.placeholder = 'XXX XXX XXX';
+                    break;
+                case '+81': // Japan
+                    phoneInput.placeholder = 'XX XXXX XXXX';
+                    break;
+                case '+82': // South Korea
+                    phoneInput.placeholder = 'XX XXXX XXXX';
+                    break;
+                case '+86': // China
+                    phoneInput.placeholder = 'XXX XXXX XXXX';
+                    break;
+                case '+65': // Singapore
+                    phoneInput.placeholder = 'XXXX XXXX';
+                    break;
+                case '+60': // Malaysia
+                    phoneInput.placeholder = 'XX XXX XXXX';
+                    break;
+                case '+66': // Thailand
+                    phoneInput.placeholder = 'XX XXX XXXX';
+                    break;
+                case '+84': // Vietnam
+                    phoneInput.placeholder = 'XXX XXX XXXX';
+                    break;
+                case '+62': // Indonesia
+                    phoneInput.placeholder = 'XXX XXXX XXXX';
+                    break;
+                case '+91': // India
+                    phoneInput.placeholder = 'XXXXX XXXXX';
+                    break;
+                case '+61': // Australia
+                    phoneInput.placeholder = 'XXX XXX XXX';
+                    break;
+                case '+64': // New Zealand
+                    phoneInput.placeholder = 'XX XXX XXXX';
+                    break;
+                default:
+                    phoneInput.placeholder = 'Enter phone number';
+            }
+        });
+        
+        // Set initial placeholder for Philippines
+        phoneInput.placeholder = '9XX XXX XXXX';
     }
 
     // Handle date changes
@@ -476,7 +589,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const checkOutDate = new Date(checkOut);
             const timeDiff = checkOutDate.getTime() - checkInDate.getTime();
             days = Math.ceil(timeDiff / (1000 * 3600 * 24));
-            nights = days;
+            nights = Math.max(0, days - 1); // Nights = days - 1 (you don't sleep the last day)
         }
 
         // Calculate total amount with new pricing structure
@@ -516,15 +629,22 @@ document.addEventListener('DOMContentLoaded', function() {
         
         console.log('Form submission started...');
         
+        // Add loading animation
+        submitBtn.classList.add('loading');
+        submitBtn.disabled = true;
+        
         if (!validateForm()) {
             console.log('Form validation failed');
+            // Remove loading state if validation fails
+            submitBtn.classList.remove('loading');
+            submitBtn.disabled = false;
             return;
         }
 
         console.log('Form validation passed');
 
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+        // Add delay for bubble animation to complete
+        await new Promise(resolve => setTimeout(resolve, 800));
 
         try {
             const cloudinaryUrl = receiptInput.getAttribute('data-cloudinary-url');
@@ -533,6 +653,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const bookingData = {
                 customerName: document.getElementById('customerName').value.trim(),
                 phoneNumber: document.getElementById('phoneNumber').value.trim(),
+                countryCode: document.getElementById('countryCode').value,
+                fullPhoneNumber: document.getElementById('countryCode').value + document.getElementById('phoneNumber').value.trim(),
                 email: document.getElementById('email').value.trim(),
                 checkIn: checkInInput.value,
                 checkOut: checkOutInput.value,
@@ -571,6 +693,8 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Booking submission error:', error);
             showError(submitBtn, 'Failed to submit booking. Please try again.');
         } finally {
+            // Remove loading state
+            submitBtn.classList.remove('loading');
             submitBtn.disabled = false;
             submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit Booking';
         }
@@ -579,85 +703,313 @@ document.addEventListener('DOMContentLoaded', function() {
     // Validate form
     function validateForm() {
         let isValid = true;
+        let errorCount = 0;
 
         // Clear previous errors
         clearAllErrors();
 
-        console.log('Starting form validation...');
+        console.log('Starting comprehensive form validation...');
 
-        // Validate required fields
-        const requiredFields = ['customerName', 'phoneNumber', 'email', 'checkIn', 'checkOut', 'adults'];
+        // Validate required fields with detailed error messages
+        const requiredFields = [
+            { id: 'customerName', name: 'Customer Name' },
+            { id: 'phoneNumber', name: 'Phone Number' },
+            { id: 'email', name: 'Email Address' },
+            { id: 'checkIn', name: 'Check-in Date' },
+            { id: 'checkOut', name: 'Check-out Date' },
+            { id: 'adults', name: 'Number of Adults' }
+        ];
         
-        requiredFields.forEach(fieldId => {
-            const field = document.getElementById(fieldId);
-            if (!field.value.trim()) {
-                showError(field, 'This field is required');
+        requiredFields.forEach(field => {
+            const fieldElement = document.getElementById(field.id);
+            if (!fieldElement.value.trim()) {
+                showError(fieldElement, `${field.name} is required`);
                 isValid = false;
-                console.log(`Validation failed: ${fieldId} is empty`);
+                errorCount++;
+                console.log(`Validation failed: ${field.id} is empty`);
             }
         });
 
+        // Validate customer name (minimum 2 characters)
+        const customerName = document.getElementById('customerName').value.trim();
+        if (customerName && customerName.length < 2) {
+            showError(document.getElementById('customerName'), 'Customer name must be at least 2 characters long');
+            isValid = false;
+            errorCount++;
+            console.log('Validation failed: Customer name too short');
+        }
+
         // Validate email format
-        const email = document.getElementById('email').value;
+        const email = document.getElementById('email').value.trim();
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (email && !emailRegex.test(email)) {
-            showError(document.getElementById('email'), 'Please enter a valid email address');
+            showError(document.getElementById('email'), 'Please enter a valid email address (e.g., user@example.com)');
             isValid = false;
+            errorCount++;
             console.log('Validation failed: Invalid email format');
         }
 
-        // Validate phone number
-        const phone = document.getElementById('phoneNumber').value;
-        const phoneRegex = /^[\d\s\-\+\(\)]+$/;
-        if (phone && !phoneRegex.test(phone)) {
-            showError(document.getElementById('phoneNumber'), 'Please enter a valid phone number');
+        // Validate phone number (more comprehensive)
+        const phone = document.getElementById('phoneNumber').value.trim();
+        const countryCode = document.getElementById('countryCode').value;
+        const phoneWrapper = document.querySelector('.phone-input-wrapper');
+        
+        // Check if phone number is provided
+        if (!phone) {
+            showError(document.getElementById('phoneNumber'), 'Phone number is required');
+            phoneWrapper.classList.add('error');
             isValid = false;
-            console.log('Validation failed: Invalid phone format');
+            errorCount++;
+            console.log('Validation failed: Phone number is empty');
+        } else {
+            // Validate phone number format based on country
+            let phoneRegex, minLength, maxLength, errorMessage;
+            
+            switch(countryCode) {
+                case '+63': // Philippines
+                    phoneRegex = /^9\d{9}$/; // Must start with 9 and be 10 digits total
+                    minLength = 10;
+                    maxLength = 10;
+                    errorMessage = 'Philippine mobile numbers must start with 9 and be 10 digits (e.g., 9123456789)';
+                    break;
+                case '+1': // USA/Canada
+                    phoneRegex = /^\d{10}$/; // 10 digits
+                    minLength = 10;
+                    maxLength = 10;
+                    errorMessage = 'US/Canada numbers must be 10 digits';
+                    break;
+                case '+44': // UK
+                    phoneRegex = /^\d{10,11}$/; // 10-11 digits
+                    minLength = 10;
+                    maxLength = 11;
+                    errorMessage = 'UK numbers must be 10-11 digits';
+                    break;
+                case '+49': // Germany
+                    phoneRegex = /^\d{10,12}$/; // 10-12 digits
+                    minLength = 10;
+                    maxLength = 12;
+                    errorMessage = 'German numbers must be 10-12 digits';
+                    break;
+                case '+81': // Japan
+                    phoneRegex = /^\d{10,11}$/; // 10-11 digits
+                    minLength = 10;
+                    maxLength = 11;
+                    errorMessage = 'Japanese numbers must be 10-11 digits';
+                    break;
+                case '+82': // South Korea
+                    phoneRegex = /^\d{10,11}$/; // 10-11 digits
+                    minLength = 10;
+                    maxLength = 11;
+                    errorMessage = 'Korean numbers must be 10-11 digits';
+                    break;
+                case '+86': // China
+                    phoneRegex = /^\d{11}$/; // 11 digits
+                    minLength = 11;
+                    maxLength = 11;
+                    errorMessage = 'Chinese numbers must be 11 digits';
+                    break;
+                case '+65': // Singapore
+                    phoneRegex = /^\d{8}$/; // 8 digits
+                    minLength = 8;
+                    maxLength = 8;
+                    errorMessage = 'Singapore numbers must be 8 digits';
+                    break;
+                case '+60': // Malaysia
+                    phoneRegex = /^\d{9,10}$/; // 9-10 digits
+                    minLength = 9;
+                    maxLength = 10;
+                    errorMessage = 'Malaysian numbers must be 9-10 digits';
+                    break;
+                case '+66': // Thailand
+                    phoneRegex = /^\d{9,10}$/; // 9-10 digits
+                    minLength = 9;
+                    maxLength = 10;
+                    errorMessage = 'Thai numbers must be 9-10 digits';
+                    break;
+                case '+84': // Vietnam
+                    phoneRegex = /^\d{9,10}$/; // 9-10 digits
+                    minLength = 9;
+                    maxLength = 10;
+                    errorMessage = 'Vietnamese numbers must be 9-10 digits';
+                    break;
+                case '+62': // Indonesia
+                    phoneRegex = /^\d{10,12}$/; // 10-12 digits
+                    minLength = 10;
+                    maxLength = 12;
+                    errorMessage = 'Indonesian numbers must be 10-12 digits';
+                    break;
+                case '+91': // India
+                    phoneRegex = /^\d{10}$/; // 10 digits
+                    minLength = 10;
+                    maxLength = 10;
+                    errorMessage = 'Indian numbers must be 10 digits';
+                    break;
+                case '+61': // Australia
+                    phoneRegex = /^\d{9,10}$/; // 9-10 digits
+                    minLength = 9;
+                    maxLength = 10;
+                    errorMessage = 'Australian numbers must be 9-10 digits';
+                    break;
+                case '+64': // New Zealand
+                    phoneRegex = /^\d{8,9}$/; // 8-9 digits
+                    minLength = 8;
+                    maxLength = 9;
+                    errorMessage = 'New Zealand numbers must be 8-9 digits';
+                    break;
+                default:
+                    phoneRegex = /^\d{7,15}$/; // General: 7-15 digits
+                    minLength = 7;
+                    maxLength = 15;
+                    errorMessage = 'Phone number must be 7-15 digits';
+            }
+            
+            if (!phoneRegex.test(phone)) {
+                showError(document.getElementById('phoneNumber'), errorMessage);
+                phoneWrapper.classList.add('error');
+                isValid = false;
+                errorCount++;
+                console.log('Validation failed: Invalid phone format for', countryCode);
+            } else {
+                // Clear error state if valid
+                phoneWrapper.classList.remove('error');
+                clearError(document.getElementById('phoneNumber'));
+            }
         }
 
-        // Validate dates
-        const checkIn = new Date(checkInInput.value);
-        const checkOut = new Date(checkOutInput.value);
-        if (checkIn && checkOut && checkOut <= checkIn) {
+        // Validate dates with more comprehensive checks
+        const checkInDate = new Date(checkInInput.value);
+        const checkOutDate = new Date(checkOutInput.value);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // Reset time to start of day
+
+        if (checkInDate && checkInDate < today) {
+            showError(checkInInput, 'Check-in date cannot be in the past');
+            isValid = false;
+            errorCount++;
+            console.log('Validation failed: Check-in date in past');
+        }
+
+        if (checkInDate && checkOutDate && checkOutDate <= checkInDate) {
             showError(checkOutInput, 'Check-out date must be after check-in date');
             isValid = false;
+            errorCount++;
             console.log('Validation failed: Invalid date range');
         }
 
         // Validate number of adults
         const adults = parseInt(adultsInput.value) || 0;
-        if (adults < 1 || adults > 10) {
-            showError(adultsInput, 'Number of adults must be between 1 and 10');
+        if (adults < 1) {
+            showError(adultsInput, 'At least 1 adult is required');
             isValid = false;
-            console.log('Validation failed: Invalid adult count');
+            errorCount++;
+            console.log('Validation failed: No adults specified');
+        } else if (adults > 10) {
+            showError(adultsInput, 'Maximum 10 adults allowed per booking');
+            isValid = false;
+            errorCount++;
+            console.log('Validation failed: Too many adults');
         }
 
         // Validate number of kids
         const kids = parseInt(kidsInput.value) || 0;
-        if (kids < 0 || kids > 10) {
-            showError(kidsInput, 'Number of kids must be between 0 and 10');
+        if (kids < 0) {
+            showError(kidsInput, 'Number of kids cannot be negative');
             isValid = false;
-            console.log('Validation failed: Invalid kid count');
+            errorCount++;
+            console.log('Validation failed: Negative kids count');
+        } else if (kids > 10) {
+            showError(kidsInput, 'Maximum 10 kids allowed per booking');
+            isValid = false;
+            errorCount++;
+            console.log('Validation failed: Too many kids');
+        }
+
+        // Validate total guest count
+        const totalGuests = adults + kids;
+        if (totalGuests > 15) {
+            showError(adultsInput, 'Maximum 15 total guests allowed per booking');
+            isValid = false;
+            errorCount++;
+            console.log('Validation failed: Too many total guests');
         }
 
         // Validate extra beds
         if (extraBedCheck.checked) {
             const extraBeds = parseInt(extraBedCount.value) || 0;
-            if (extraBeds > MAX_EXTRA_BEDS) {
+            if (extraBeds < 1) {
+                showError(extraBedCount, 'Please specify number of extra beds needed');
+                isValid = false;
+                errorCount++;
+                console.log('Validation failed: Extra beds not specified');
+            } else if (extraBeds > MAX_EXTRA_BEDS) {
                 showError(extraBedCount, `Maximum ${MAX_EXTRA_BEDS} extra beds allowed`);
                 isValid = false;
+                errorCount++;
                 console.log('Validation failed: Too many extra beds');
             }
         }
 
-        // Validate receipt upload
+        // Validate receipt upload (CRITICAL - must have receipt)
         const cloudinaryUrl = receiptInput.getAttribute('data-cloudinary-url');
-        if (!cloudinaryUrl) {
-            showError(receiptInput, 'Please upload a screenshot of your GCash receipt');
+        const receiptFile = receiptInput.files[0];
+        const fileUploadContainer = document.querySelector('.file-upload-container');
+        
+        if (!cloudinaryUrl && !receiptFile) {
+            showError(receiptInput, 'Please upload a screenshot of your GCash receipt to complete the booking');
+            fileUploadContainer.classList.add('error');
             isValid = false;
+            errorCount++;
             console.log('Validation failed: No receipt uploaded');
+        } else if (receiptFile) {
+            // Validate file type
+            const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+            if (!allowedTypes.includes(receiptFile.type)) {
+                showError(receiptInput, 'Please upload a valid image file (JPG, PNG, or GIF)');
+                fileUploadContainer.classList.add('error');
+                isValid = false;
+                errorCount++;
+                console.log('Validation failed: Invalid file type');
+            }
+            
+            // Validate file size (5MB limit)
+            const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+            if (receiptFile.size > maxSize) {
+                showError(receiptInput, 'File size must be less than 5MB');
+                fileUploadContainer.classList.add('error');
+                isValid = false;
+                errorCount++;
+                console.log('Validation failed: File too large');
+            } else {
+                // Clear error state if valid
+                fileUploadContainer.classList.remove('error');
+                clearError(receiptInput);
+            }
         } else {
-            console.log('Receipt validation passed:', cloudinaryUrl);
+            // Clear error state if cloudinary URL exists
+            fileUploadContainer.classList.remove('error');
+            clearError(receiptInput);
+        }
+
+        // Validate minimum booking amount
+        const totalAmount = calculateTotalAmount();
+        if (totalAmount < 1000) {
+            showError(document.getElementById('adults'), 'Minimum booking amount is ₱1,000');
+            isValid = false;
+            errorCount++;
+            console.log('Validation failed: Amount too low');
+        }
+
+        // Show summary of validation results
+        if (!isValid) {
+            console.log(`Form validation failed with ${errorCount} error(s)`);
+            
+            // Show error summary notification
+            showErrorSummary(errorCount);
+            
+            // Enhanced mobile-friendly scrolling to first error
+            scrollToFirstError();
+        } else {
+            console.log('Form validation passed successfully');
         }
 
         console.log('Form validation result:', isValid);
@@ -668,7 +1020,8 @@ document.addEventListener('DOMContentLoaded', function() {
     function calculateTotalAmount() {
         const checkIn = new Date(checkInInput.value);
         const checkOut = new Date(checkOutInput.value);
-        const nights = Math.ceil((checkOut - checkIn) / (1000 * 3600 * 24));
+        const days = Math.ceil((checkOut - checkIn) / (1000 * 3600 * 24));
+        const nights = Math.max(0, days - 1); // Nights = days - 1 (you don't sleep the last day)
         const adults = parseInt(adultsInput.value) || 0;
         const kids = parseInt(kidsInput.value) || 0;
         const extraBeds = extraBedCheck.checked ? parseInt(extraBedCount.value) || 0 : 0;
@@ -891,11 +1244,24 @@ document.addEventListener('DOMContentLoaded', function() {
             existingError.remove();
         }
         
-        // Add new error message
+        // Add new error message with enhanced styling
         const errorDiv = document.createElement('div');
         errorDiv.className = 'error-message';
-        errorDiv.textContent = message;
+        errorDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${message}`;
         field.parentNode.appendChild(errorDiv);
+        
+        // Add shake animation
+        field.style.animation = 'shake 0.5s ease-in-out';
+        setTimeout(() => {
+            field.style.animation = '';
+        }, 500);
+        
+        // Focus on the field for better UX
+        field.focus();
+        
+        // Add visual feedback
+        field.style.borderColor = '#e74c3c';
+        field.style.boxShadow = '0 0 0 2px rgba(231, 76, 60, 0.2)';
     }
 
     // Clear error
@@ -905,6 +1271,11 @@ document.addEventListener('DOMContentLoaded', function() {
         if (errorMessage) {
             errorMessage.remove();
         }
+        
+        // Reset visual feedback
+        field.style.borderColor = '';
+        field.style.boxShadow = '';
+        field.style.animation = '';
     }
 
     // Clear all errors
@@ -918,6 +1289,109 @@ document.addEventListener('DOMContentLoaded', function() {
         errorMessages.forEach(message => {
             message.remove();
         });
+        
+        // Remove error summary if exists
+        const errorSummary = document.getElementById('errorSummary');
+        if (errorSummary) {
+            errorSummary.remove();
+        }
+    }
+
+    // Show error summary notification
+    function showErrorSummary(errorCount) {
+        // Remove existing error summary
+        const existingSummary = document.getElementById('errorSummary');
+        if (existingSummary) {
+            existingSummary.remove();
+        }
+        
+        // Create error summary
+        const errorSummary = document.createElement('div');
+        errorSummary.id = 'errorSummary';
+        errorSummary.className = 'error-summary';
+        errorSummary.innerHTML = `
+            <div class="error-summary-content">
+                <i class="fas fa-exclamation-triangle"></i>
+                <div class="error-summary-text">
+                    <strong>Please fix ${errorCount} error${errorCount > 1 ? 's' : ''} to continue:</strong>
+                    <p>All required fields must be filled and a receipt must be uploaded.</p>
+                </div>
+                <button type="button" class="error-summary-close" onclick="this.parentElement.parentElement.remove()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        `;
+        
+        // Insert at the top of the form
+        const form = document.querySelector('form');
+        form.insertBefore(errorSummary, form.firstChild);
+        
+        // Auto-remove after 10 seconds
+        setTimeout(() => {
+            if (errorSummary.parentNode) {
+                errorSummary.remove();
+            }
+        }, 10000);
+    }
+
+    // Enhanced mobile-friendly scroll to first error
+    function scrollToFirstError() {
+        const firstError = document.querySelector('.error');
+        if (!firstError) return;
+        
+        // Check if we're on mobile
+        const isMobile = window.innerWidth <= 768;
+        
+        if (isMobile) {
+            // Mobile-specific scrolling with offset for fixed header
+            const headerHeight = 70; // Height of fixed navigation
+            const offset = headerHeight + 20; // Extra padding
+            
+            // Get the position of the error field
+            const errorRect = firstError.getBoundingClientRect();
+            const scrollTop = window.pageYOffset + errorRect.top - offset;
+            
+            // Smooth scroll to error field
+            window.scrollTo({
+                top: scrollTop,
+                behavior: 'smooth'
+            });
+            
+            // Add visual highlight to the error field
+            firstError.style.animation = 'errorPulse 0.6s ease-in-out 3';
+            
+            // Focus on the error field after scroll
+            setTimeout(() => {
+                if (firstError.tagName === 'INPUT' || firstError.tagName === 'SELECT') {
+                    firstError.focus();
+                } else {
+                    // If it's a wrapper, find the actual input
+                    const input = firstError.querySelector('input, select');
+                    if (input) {
+                        input.focus();
+                    }
+                }
+            }, 800);
+            
+        } else {
+            // Desktop scrolling
+            firstError.scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'center' 
+            });
+            
+            // Focus on the error field
+            setTimeout(() => {
+                if (firstError.tagName === 'INPUT' || firstError.tagName === 'SELECT') {
+                    firstError.focus();
+                } else {
+                    const input = firstError.querySelector('input, select');
+                    if (input) {
+                        input.focus();
+                    }
+                }
+            }, 500);
+        }
     }
 
     // File upload handling functions
@@ -968,7 +1442,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Show preview
                 receiptPreview.src = data.secure_url;
-                fileName.textContent = file.name;
+                
+                // Hide filename if too long to prevent field stretching
+                if (file.name.length > 25) {
+                    fileName.textContent = 'Image uploaded';
+                    fileName.classList.add('long-filename');
+                } else {
+                    fileName.textContent = file.name;
+                    fileName.classList.remove('long-filename');
+                }
+                fileName.title = file.name; // Add tooltip with full filename
                 
                 // Show preview and hide placeholder
                 fileUploadDisplay.classList.remove('uploading');
@@ -1002,11 +1485,65 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Initialize booking summary on page load
     updateBookingSummary();
+    
+    // Image viewer functions
+    window.openImageViewer = function(imageSrc, imageAlt) {
+        const modal = document.getElementById('imageViewerModal');
+        const viewerImage = document.getElementById('viewerImage');
+        const viewerImageName = document.getElementById('viewerImageName');
+        const viewerImageSize = document.getElementById('viewerImageSize');
+        
+        // Set image source and alt text
+        viewerImage.src = imageSrc;
+        viewerImage.alt = imageAlt;
+        
+        // Set image name (extract from alt or use default)
+        const fileName = imageAlt || 'Uploaded Image';
+        viewerImageName.textContent = fileName;
+        
+        // Get image dimensions for display
+        const img = new Image();
+        img.onload = function() {
+            const dimensions = `${this.naturalWidth} × ${this.naturalHeight}`;
+            const fileSize = getFileSizeFromSrc(imageSrc);
+            viewerImageSize.textContent = `${dimensions}${fileSize ? ` • ${fileSize}` : ''}`;
+        };
+        img.src = imageSrc;
+        
+        // Show modal
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        
+        // Add keyboard support
+        document.addEventListener('keydown', handleImageViewerKeyboard);
+    };
+    
+    window.closeImageViewer = function() {
+        const modal = document.getElementById('imageViewerModal');
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+        
+        // Remove keyboard listener
+        document.removeEventListener('keydown', handleImageViewerKeyboard);
+    };
+    
+    function handleImageViewerKeyboard(event) {
+        if (event.key === 'Escape') {
+            closeImageViewer();
+        }
+    }
+    
+    function getFileSizeFromSrc(src) {
+        // This is a placeholder - in a real implementation, you might want to
+        // store file size when uploading or make an API call to get it
+        return null;
+    }
 
     // Close modal when clicking outside
     document.addEventListener('click', function(event) {
         const gcashModal = document.getElementById('gcashModal');
         const successModal = document.getElementById('successModal');
+        const imageViewerModal = document.getElementById('imageViewerModal');
         
         if (event.target === gcashModal) {
             closeGCashModal();
@@ -1014,6 +1551,10 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (event.target === successModal) {
             closeSuccessModal();
+        }
+        
+        if (event.target === imageViewerModal) {
+            closeImageViewer();
         }
     });
 });

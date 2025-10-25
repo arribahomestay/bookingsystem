@@ -212,6 +212,8 @@ body {
     background: white;
     border-radius: 15px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+    position: relative;
+    overflow: visible;
 }
 
 .main-header h1 {
@@ -225,6 +227,8 @@ body {
     display: flex;
     align-items: center;
     gap: 20px;
+    position: relative;
+    overflow: visible;
 }
 
 /* Hide any refresh buttons */
@@ -706,14 +710,19 @@ button:has(.fa-refresh) {
     border: 1px solid #e0e0e0;
     border-radius: 10px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-    z-index: 1000;
+    z-index: 10000;
     display: none;
     max-height: 400px;
     overflow: hidden;
+    margin-top: 5px;
+    visibility: hidden;
+    opacity: 0;
 }
 
 .notification-dropdown.show {
     display: block;
+    visibility: visible;
+    opacity: 1;
     animation: slideDown 0.3s ease-out;
 }
 
