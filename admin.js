@@ -164,6 +164,8 @@ let currentPage = 1;
 let itemsPerPage = 10;
 let allBookings = [];
 let allRecords = [];
+let allSuggestions = [];
+let allReviews = [];
 let filteredBookings = [];
 let filteredRecords = [];
 let availabilityData = {};
@@ -415,86 +417,254 @@ window.toggleMobileNotificationDropdown = function() {
     }
 };
 
-// Update notification list with pending bookings
+// Update notification list with all types of notifications
 function updateNotificationList() {
     const notificationList = document.getElementById('notificationList');
     if (!notificationList) return;
     
+    // Get all types of notifications
     const pendingBookings = allBookings.filter(booking => 
         booking.status === 'pending' || booking.status === 'new'
     );
     
-    if (pendingBookings.length === 0) {
-        notificationList.innerHTML = '<div class="no-notifications">No new bookings</div>';
+    const newSuggestions = allSuggestions.filter(suggestion => 
+        !isNotificationRead(`suggestion_${suggestion.id}`)
+    );
+    
+    const newReviews = allReviews.filter(review => 
+        review.status === 'pending' && !isNotificationRead(`review_${review.id}`)
+    );
+    
+    // Combine all notifications
+    const allNotifications = [];
+    
+    // Add booking notifications
+    pendingBookings.forEach(booking => {
+        allNotifications.push({
+            type: 'booking',
+            id: booking.id,
+            data: booking,
+            timestamp: booking.createdAt,
+            isRead: isNotificationRead(booking.id)
+        });
+    });
+    
+    // Add suggestion notifications
+    newSuggestions.forEach(suggestion => {
+        allNotifications.push({
+            type: 'suggestion',
+            id: `suggestion_${suggestion.id}`,
+            data: suggestion,
+            timestamp: suggestion.submittedAt,
+            isRead: isNotificationRead(`suggestion_${suggestion.id}`)
+        });
+    });
+    
+    // Add review notifications
+    newReviews.forEach(review => {
+        allNotifications.push({
+            type: 'review',
+            id: `review_${review.id}`,
+            data: review,
+            timestamp: review.submittedAt,
+            isRead: isNotificationRead(`review_${review.id}`)
+        });
+    });
+    
+    if (allNotifications.length === 0) {
+        notificationList.innerHTML = '<div class="no-notifications">No new notifications</div>';
+        // Update notification count after updating the list
+        updateNotificationCount();
         return;
     }
     
-    // Sort by creation date (newest first)
-    pendingBookings.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    // Sort by timestamp (newest first)
+    allNotifications.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
     
-    notificationList.innerHTML = pendingBookings.map(booking => {
-        const timeAgo = getTimeAgo(booking.createdAt);
-        const checkInDate = new Date(booking.checkIn).toLocaleDateString();
-        const checkOutDate = new Date(booking.checkOut).toLocaleDateString();
-        const isRead = isNotificationRead(booking.id);
-        const readClass = isRead ? 'read' : 'unread';
+    notificationList.innerHTML = allNotifications.map(notification => {
+        const timeAgo = getTimeAgo(notification.timestamp);
+        const readClass = notification.isRead ? 'read' : 'unread';
         
-        return `
-            <div class="notification-item ${readClass}" onclick="viewBookingFromNotification('${booking.id}')">
-                <div class="notification-item-header">
-                    <span class="notification-customer">${booking.customerName}</span>
-                    <span class="notification-time">${timeAgo}</span>
+        if (notification.type === 'booking') {
+            const booking = notification.data;
+            const checkInDate = new Date(booking.checkIn).toLocaleDateString();
+            const checkOutDate = new Date(booking.checkOut).toLocaleDateString();
+            
+            return `
+                <div class="notification-item ${readClass}" onclick="viewBookingFromNotification('${booking.id}')">
+                    <div class="notification-item-header">
+                        <span class="notification-customer">📅 New Booking: ${booking.customerName}</span>
+                        <span class="notification-time">${timeAgo}</span>
+                    </div>
+                    <div class="notification-details">
+                        <div>📅 ${checkInDate} - ${checkOutDate}</div>
+                        <div>👥 ${booking.adults} adults${booking.kids > 0 ? `, ${booking.kids} kids` : ''}${booking.extraBeds > 0 ? ` + ${booking.extraBeds} extra beds` : ''}</div>
+                        <div>💰 ₱${booking.totalAmount.toLocaleString()}</div>
+                    </div>
+                    <span class="notification-status ${booking.status}">${booking.status.toUpperCase()}</span>
                 </div>
-                <div class="notification-details">
-                    <div>📅 ${checkInDate} - ${checkOutDate}</div>
-                    <div>👥 ${booking.adults} adults${booking.kids > 0 ? `, ${booking.kids} kids` : ''}${booking.extraBeds > 0 ? ` + ${booking.extraBeds} extra beds` : ''}</div>
-                    <div>💰 ₱${booking.totalAmount.toLocaleString()}</div>
+            `;
+        } else if (notification.type === 'suggestion') {
+            const suggestion = notification.data;
+            return `
+                <div class="notification-item ${readClass}" onclick="viewSuggestionFromNotification('${suggestion.id}')">
+                    <div class="notification-item-header">
+                        <span class="notification-customer">💡 New Suggestion: ${suggestion.name}</span>
+                        <span class="notification-time">${timeAgo}</span>
+                    </div>
+                    <div class="notification-details">
+                        <div>📧 ${suggestion.email}</div>
+                        <div>📝 ${suggestion.subject}</div>
+                        <div>💬 ${suggestion.message.substring(0, 50)}${suggestion.message.length > 50 ? '...' : ''}</div>
+                    </div>
+                    <span class="notification-status suggestion">SUGGESTION</span>
                 </div>
-                <span class="notification-status ${booking.status}">${booking.status.toUpperCase()}</span>
-            </div>
-        `;
+            `;
+        } else if (notification.type === 'review') {
+            const review = notification.data;
+            return `
+                <div class="notification-item ${readClass}" onclick="viewReviewFromNotification('${review.id}')">
+                    <div class="notification-item-header">
+                        <span class="notification-customer">⭐ New Review: ${review.customerName}</span>
+                        <span class="notification-time">${timeAgo}</span>
+                    </div>
+                    <div class="notification-details">
+                        <div>⭐ ${'★'.repeat(review.rating)}${'☆'.repeat(5-review.rating)} (${review.rating}/5)</div>
+                        <div>💬 ${review.review.substring(0, 50)}${review.review.length > 50 ? '...' : ''}</div>
+                    </div>
+                    <span class="notification-status review">REVIEW</span>
+                </div>
+            `;
+        }
     }).join('');
+    
+    // Update notification count after updating the list
+    updateNotificationCount();
 }
 
-// Update mobile notification list with pending bookings
+// Update mobile notification list with all types of notifications
 function updateMobileNotificationList() {
     const notificationList = document.getElementById('mobileNotificationList');
     if (!notificationList) return;
     
+    // Get all types of notifications (same logic as desktop)
     const pendingBookings = allBookings.filter(booking => 
         booking.status === 'pending' || booking.status === 'new'
     );
     
-    if (pendingBookings.length === 0) {
-        notificationList.innerHTML = '<div class="no-notifications">No new bookings</div>';
+    const newSuggestions = allSuggestions.filter(suggestion => 
+        !isNotificationRead(`suggestion_${suggestion.id}`)
+    );
+    
+    const newReviews = allReviews.filter(review => 
+        review.status === 'pending' && !isNotificationRead(`review_${review.id}`)
+    );
+    
+    // Combine all notifications
+    const allNotifications = [];
+    
+    // Add booking notifications
+    pendingBookings.forEach(booking => {
+        allNotifications.push({
+            type: 'booking',
+            id: booking.id,
+            data: booking,
+            timestamp: booking.createdAt,
+            isRead: isNotificationRead(booking.id)
+        });
+    });
+    
+    // Add suggestion notifications
+    newSuggestions.forEach(suggestion => {
+        allNotifications.push({
+            type: 'suggestion',
+            id: `suggestion_${suggestion.id}`,
+            data: suggestion,
+            timestamp: suggestion.submittedAt,
+            isRead: isNotificationRead(`suggestion_${suggestion.id}`)
+        });
+    });
+    
+    // Add review notifications
+    newReviews.forEach(review => {
+        allNotifications.push({
+            type: 'review',
+            id: `review_${review.id}`,
+            data: review,
+            timestamp: review.submittedAt,
+            isRead: isNotificationRead(`review_${review.id}`)
+        });
+    });
+    
+    if (allNotifications.length === 0) {
+        notificationList.innerHTML = '<div class="no-notifications">No new notifications</div>';
+        // Update notification count after updating the list
+        updateNotificationCount();
         return;
     }
     
-    // Sort by creation date (newest first)
-    pendingBookings.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    // Sort by timestamp (newest first)
+    allNotifications.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
     
-    notificationList.innerHTML = pendingBookings.map(booking => {
-        const timeAgo = getTimeAgo(booking.createdAt);
-        const checkInDate = new Date(booking.checkIn).toLocaleDateString();
-        const checkOutDate = new Date(booking.checkOut).toLocaleDateString();
-        const isRead = isNotificationRead(booking.id);
-        const readClass = isRead ? 'read' : 'unread';
+    notificationList.innerHTML = allNotifications.map(notification => {
+        const timeAgo = getTimeAgo(notification.timestamp);
+        const readClass = notification.isRead ? 'read' : 'unread';
         
-        return `
-            <div class="notification-item ${readClass}" onclick="viewBookingFromNotification('${booking.id}')">
-                <div class="notification-item-header">
-                    <span class="notification-customer">${booking.customerName}</span>
-                    <span class="notification-time">${timeAgo}</span>
+        if (notification.type === 'booking') {
+            const booking = notification.data;
+            const checkInDate = new Date(booking.checkIn).toLocaleDateString();
+            const checkOutDate = new Date(booking.checkOut).toLocaleDateString();
+            
+            return `
+                <div class="notification-item ${readClass}" onclick="viewBookingFromNotification('${booking.id}')">
+                    <div class="notification-item-header">
+                        <span class="notification-customer">📅 New Booking: ${booking.customerName}</span>
+                        <span class="notification-time">${timeAgo}</span>
+                    </div>
+                    <div class="notification-details">
+                        <div>📅 ${checkInDate} - ${checkOutDate}</div>
+                        <div>👥 ${booking.adults} adults${booking.kids > 0 ? `, ${booking.kids} kids` : ''}${booking.extraBeds > 0 ? ` + ${booking.extraBeds} extra beds` : ''}</div>
+                        <div>💰 ₱${booking.totalAmount.toLocaleString()}</div>
+                    </div>
+                    <span class="notification-status ${booking.status}">${booking.status.toUpperCase()}</span>
                 </div>
-                <div class="notification-details">
-                    <div>📅 ${checkInDate} - ${checkOutDate}</div>
-                    <div>👥 ${booking.adults} adults${booking.kids > 0 ? `, ${booking.kids} kids` : ''}${booking.extraBeds > 0 ? ` + ${booking.extraBeds} extra beds` : ''}</div>
-                    <div>💰 ₱${booking.totalAmount.toLocaleString()}</div>
+            `;
+        } else if (notification.type === 'suggestion') {
+            const suggestion = notification.data;
+            return `
+                <div class="notification-item ${readClass}" onclick="viewSuggestionFromNotification('${suggestion.id}')">
+                    <div class="notification-item-header">
+                        <span class="notification-customer">💡 New Suggestion: ${suggestion.name}</span>
+                        <span class="notification-time">${timeAgo}</span>
+                    </div>
+                    <div class="notification-details">
+                        <div>📧 ${suggestion.email}</div>
+                        <div>📝 ${suggestion.subject}</div>
+                        <div>💬 ${suggestion.message.substring(0, 50)}${suggestion.message.length > 50 ? '...' : ''}</div>
+                    </div>
+                    <span class="notification-status suggestion">SUGGESTION</span>
                 </div>
-                <span class="notification-status ${booking.status}">${booking.status.toUpperCase()}</span>
-            </div>
-        `;
+            `;
+        } else if (notification.type === 'review') {
+            const review = notification.data;
+            return `
+                <div class="notification-item ${readClass}" onclick="viewReviewFromNotification('${review.id}')">
+                    <div class="notification-item-header">
+                        <span class="notification-customer">⭐ New Review: ${review.customerName}</span>
+                        <span class="notification-time">${timeAgo}</span>
+                    </div>
+                    <div class="notification-details">
+                        <div>⭐ ${'★'.repeat(review.rating)}${'☆'.repeat(5-review.rating)} (${review.rating}/5)</div>
+                        <div>💬 ${review.review.substring(0, 50)}${review.review.length > 50 ? '...' : ''}</div>
+                    </div>
+                    <span class="notification-status review">REVIEW</span>
+                </div>
+            `;
+        }
     }).join('');
+    
+    // Update notification count after updating the list
+    updateNotificationCount();
 }
 
 // Mark notification as read in localStorage
@@ -550,6 +720,56 @@ window.viewBookingFromNotification = function(bookingId) {
     updateNotificationCount();
 };
 
+// View suggestion from notification
+window.viewSuggestionFromNotification = function(suggestionId) {
+    // Close notification dropdown
+    const dropdown = document.getElementById('notificationDropdown');
+    if (dropdown) {
+        dropdown.classList.remove('show');
+    }
+    
+    // Mark notification as read in localStorage
+    markNotificationAsRead(`suggestion_${suggestionId}`);
+    
+    // Mark notification as read by removing unread class
+    const notificationItem = document.querySelector(`.notification-item[onclick*="viewSuggestionFromNotification('${suggestionId}')"]`);
+    if (notificationItem) {
+        notificationItem.classList.remove('unread');
+        notificationItem.classList.add('read');
+    }
+    
+    // Switch to suggestions section
+    switchSection('suggestions');
+    
+    // Update notification count
+    updateNotificationCount();
+};
+
+// View review from notification
+window.viewReviewFromNotification = function(reviewId) {
+    // Close notification dropdown
+    const dropdown = document.getElementById('notificationDropdown');
+    if (dropdown) {
+        dropdown.classList.remove('show');
+    }
+    
+    // Mark notification as read in localStorage
+    markNotificationAsRead(`review_${reviewId}`);
+    
+    // Mark notification as read by removing unread class
+    const notificationItem = document.querySelector(`.notification-item[onclick*="viewReviewFromNotification('${reviewId}')"]`);
+    if (notificationItem) {
+        notificationItem.classList.remove('unread');
+        notificationItem.classList.add('read');
+    }
+    
+    // Switch to reviews section
+    switchSection('reviews');
+    
+    // Update notification count
+    updateNotificationCount();
+};
+
 // Mark all notifications as read
 window.markAllAsRead = function() {
     // Mark all notification items as read
@@ -558,11 +778,25 @@ window.markAllAsRead = function() {
         item.classList.remove('unread');
         item.classList.add('read');
         
-        // Extract booking ID from onclick attribute and mark as read in localStorage
+        // Extract notification ID from onclick attribute and mark as read in localStorage
         const onclickAttr = item.getAttribute('onclick');
+        
+        // Check for booking notifications
         const bookingIdMatch = onclickAttr.match(/viewBookingFromNotification\('([^']+)'\)/);
         if (bookingIdMatch) {
             markNotificationAsRead(bookingIdMatch[1]);
+        }
+        
+        // Check for suggestion notifications
+        const suggestionIdMatch = onclickAttr.match(/viewSuggestionFromNotification\('([^']+)'\)/);
+        if (suggestionIdMatch) {
+            markNotificationAsRead(`suggestion_${suggestionIdMatch[1]}`);
+        }
+        
+        // Check for review notifications
+        const reviewIdMatch = onclickAttr.match(/viewReviewFromNotification\('([^']+)'\)/);
+        if (reviewIdMatch) {
+            markNotificationAsRead(`review_${reviewIdMatch[1]}`);
         }
     });
     
@@ -598,15 +832,7 @@ function getTimeAgo(dateString) {
     }
 }
 
-// Close notification dropdown when clicking outside
-document.addEventListener('click', function(event) {
-    const dropdown = document.getElementById('notificationDropdown');
-    const bell = document.querySelector('.notification-bell');
-    
-    if (dropdown && !bell.contains(event.target)) {
-        dropdown.classList.remove('show');
-    }
-});
+// Close notification dropdown when clicking outside (removed duplicate - handled in DOMContentLoaded)
 
 function initializeAdmin() {
     // Set up sidebar navigation
@@ -3001,16 +3227,19 @@ async function loadReviews() {
         const q = query(reviewsRef); // Simplified query without ordering
         const querySnapshot = await getDocs(q);
         
-        const reviews = [];
+        allReviews = [];
         querySnapshot.forEach((doc) => {
-            reviews.push({ id: doc.id, ...doc.data() });
+            allReviews.push({ id: doc.id, ...doc.data() });
         });
         
         // Sort by submittedAt date (client-side sorting)
-        reviews.sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
+        allReviews.sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
         
-        console.log('Reviews loaded:', reviews.length);
-        displayReviews(reviews);
+        // Store reviews globally for mobile
+        window.currentReviews = allReviews;
+        
+        console.log('Reviews loaded:', allReviews.length);
+        displayReviews(allReviews);
         
     } catch (error) {
         console.error('Error loading reviews:', error);
@@ -3024,6 +3253,8 @@ function displayReviews(reviews) {
     
     if (reviews.length === 0) {
         tableBody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #666;">No reviews found</td></tr>';
+        // Store empty reviews globally for mobile
+        window.currentReviews = [];
         // Generate mobile cards if on mobile
         if (window.innerWidth <= 768) {
             generateMobileReviewCards([]);
@@ -4087,6 +4318,8 @@ function loadSuggestions() {
                 
                 if (snapshot.empty) {
                     noDataDiv.style.display = 'block';
+                    // Store empty suggestions globally for mobile
+                    window.currentSuggestions = [];
                     // Generate mobile cards if on mobile
                     if (window.innerWidth <= 768) {
                         generateMobileSuggestionCards([]);
@@ -4097,7 +4330,7 @@ function loadSuggestions() {
                 noDataDiv.style.display = 'none';
                 
                 // Collect all suggestions for mobile cards
-                const allSuggestions = [];
+                allSuggestions = [];
                 
                 // Add each suggestion to the table
                 snapshot.forEach(doc => {
@@ -4106,6 +4339,9 @@ function loadSuggestions() {
                     allSuggestions.push(suggestion);
                     addSuggestionToTable(suggestion);
                 });
+                
+                // Store suggestions globally for mobile
+                window.currentSuggestions = allSuggestions;
                 
                 // Generate mobile cards if on mobile
                 if (window.innerWidth <= 768) {
@@ -4228,7 +4464,7 @@ async function showSuggestionModal(suggestionId) {
 }
 
 
-async function deleteSuggestion(suggestionId) {
+window.deleteSuggestion = async function(suggestionId) {
     if (confirm('Are you sure you want to delete this suggestion?')) {
         try {
             // Import Firestore functions
@@ -4258,6 +4494,51 @@ function filterSuggestions() {
     // This function can be expanded to filter suggestions based on status and date range
     loadSuggestions();
 }
+
+// View suggestion details (for mobile cards)
+window.viewSuggestionDetails = async function(suggestionId) {
+    try {
+        // Import Firestore functions
+        const { doc, getDoc } = await import('https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js');
+        
+        // Get suggestion details
+        const suggestionRef = doc(db, 'suggestions', suggestionId);
+        const suggestionDoc = await getDoc(suggestionRef);
+        
+        if (suggestionDoc.exists()) {
+            const suggestion = suggestionDoc.data();
+            
+            // Create modal content
+            const modalContent = `
+                <div class="suggestion-details">
+                    <div class="detail-row">
+                        <strong>Name:</strong> ${suggestion.name}
+                    </div>
+                    <div class="detail-row">
+                        <strong>Email:</strong> ${suggestion.email}
+                    </div>
+                    <div class="detail-row">
+                        <strong>Subject:</strong> ${suggestion.subject}
+                    </div>
+                    <div class="detail-row">
+                        <strong>Message:</strong> ${suggestion.message}
+                    </div>
+                    <div class="detail-row">
+                        <strong>Date:</strong> ${formatDate(suggestion.submittedAt || suggestion.date)}
+                    </div>
+                </div>
+            `;
+            
+            showSuggestionDetailsModal(modalContent);
+        } else {
+            showNotification('Suggestion not found', 'error');
+        }
+        
+    } catch (error) {
+        console.error('Error loading suggestion:', error);
+        showNotification('Error loading suggestion details', 'error');
+    }
+};
 
 // Modal functions for suggestions
 function showSuggestionDetailsModal(content) {
@@ -4393,6 +4674,8 @@ function generateMobileSuggestionCards(suggestions) {
     const mobileCardsContainer = document.getElementById('mobileSuggestionsCards');
     if (!mobileCardsContainer) return;
     
+    console.log('Generating mobile suggestion cards with:', suggestions);
+    
     if (!suggestions || suggestions.length === 0) {
         mobileCardsContainer.innerHTML = `
             <div class="no-data-message">
@@ -4404,11 +4687,13 @@ function generateMobileSuggestionCards(suggestions) {
     }
     
     const cardsHTML = suggestions.map(suggestion => {
+        const date = suggestion.submittedAt || suggestion.date || new Date().toISOString();
+        console.log('Processing suggestion:', suggestion);
         return `
             <div class="suggestion-card">
                 <div class="suggestion-card-header">
                     <div class="suggestion-name">${suggestion.name}</div>
-                    <div class="suggestion-date">${formatDate(suggestion.date)}</div>
+                    <div class="suggestion-date">${formatDate(date)}</div>
                 </div>
                 <div class="suggestion-details">
                     <div class="suggestion-email">${suggestion.email}</div>
@@ -4418,9 +4703,6 @@ function generateMobileSuggestionCards(suggestions) {
                 <div class="suggestion-actions">
                     <button class="suggestion-action-btn view" onclick="viewSuggestionDetails('${suggestion.id}')">
                         <i class="fas fa-eye"></i> View
-                    </button>
-                    <button class="suggestion-action-btn reply" onclick="replyToSuggestion('${suggestion.id}')">
-                        <i class="fas fa-reply"></i> Reply
                     </button>
                     <button class="suggestion-action-btn delete" onclick="deleteSuggestion('${suggestion.id}')">
                         <i class="fas fa-trash"></i> Delete
@@ -4438,6 +4720,8 @@ function generateMobileReviewCards(reviews) {
     const mobileCardsContainer = document.getElementById('mobileReviewsCards');
     if (!mobileCardsContainer) return;
     
+    console.log('Generating mobile review cards with:', reviews);
+    
     if (!reviews || reviews.length === 0) {
         mobileCardsContainer.innerHTML = `
             <div class="no-data-message">
@@ -4449,6 +4733,7 @@ function generateMobileReviewCards(reviews) {
     }
     
     const cardsHTML = reviews.map(review => {
+        console.log('Processing review:', review);
         const statusClass = review.status.toLowerCase();
         const stars = '★'.repeat(review.rating) + '☆'.repeat(5 - review.rating);
         
@@ -4589,11 +4874,23 @@ function initializeBottomNavigation() {
         item.addEventListener('click', () => {
             const section = item.getAttribute('data-section');
             if (section) {
-                // Remove active class from all items
-                navItems.forEach(nav => nav.classList.remove('active'));
-                // Add active class to clicked item
+                // Add smooth transition effect
+                item.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    item.style.transform = '';
+                }, 150);
+                
+                // Remove active class from all items with smooth transition
+                navItems.forEach(nav => {
+                    nav.classList.remove('active');
+                    nav.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+                });
+                
+                // Add active class to clicked item with smooth transition
                 item.classList.add('active');
-                // Navigate to section
+                item.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+                
+                // Navigate to section with smooth animation
                 navigateToSection(section);
             }
         });
@@ -4612,14 +4909,42 @@ function initializeBottomNavigation() {
 
 // Navigate to section
 function navigateToSection(sectionName) {
-    // Hide all sections
+    // Hide all sections with fade out animation
     const sections = document.querySelectorAll('.content-section');
-    sections.forEach(section => section.classList.remove('active'));
+    sections.forEach(section => {
+        section.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+        section.style.opacity = '0';
+        section.style.transform = 'translateY(10px)';
+        setTimeout(() => {
+            section.classList.remove('active');
+            section.style.transition = '';
+            section.style.opacity = '';
+            section.style.transform = '';
+        }, 300);
+    });
     
-    // Show target section
+    // Show target section with fade in animation
     const targetSection = document.getElementById(`${sectionName}-section`);
     if (targetSection) {
-        targetSection.classList.add('active');
+        setTimeout(() => {
+            targetSection.classList.add('active');
+            targetSection.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+            targetSection.style.opacity = '0';
+            targetSection.style.transform = 'translateY(10px)';
+            
+            // Trigger reflow
+            targetSection.offsetHeight;
+            
+            targetSection.style.opacity = '1';
+            targetSection.style.transform = 'translateY(0)';
+            
+            // Clean up after animation
+            setTimeout(() => {
+                targetSection.style.transition = '';
+                targetSection.style.opacity = '';
+                targetSection.style.transform = '';
+            }, 300);
+        }, 300);
         
         // Update page title
         const pageTitle = document.getElementById('pageTitle');
@@ -4647,13 +4972,23 @@ function navigateToSection(sectionName) {
                     generateMobileBookingCards(filteredBookings);
                     break;
                 case 'suggestions':
-                    generateMobileSuggestionCards(window.currentSuggestions || []);
+                    // Load suggestions if not already loaded
+                    if (!window.currentSuggestions || window.currentSuggestions.length === 0) {
+                        loadSuggestions();
+                    } else {
+                        generateMobileSuggestionCards(window.currentSuggestions);
+                    }
                     break;
                 case 'records':
                     generateMobileRecordCards(filteredRecords);
                     break;
                 case 'reviews':
-                    generateMobileReviewCards(window.currentReviews || []);
+                    // Load reviews if not already loaded
+                    if (!window.currentReviews || window.currentReviews.length === 0) {
+                        loadReviews();
+                    } else {
+                        generateMobileReviewCards(window.currentReviews);
+                    }
                     break;
             }
         }
@@ -4783,9 +5118,15 @@ document.addEventListener('DOMContentLoaded', function() {
     if (desktopNotificationBell && desktopNotificationDropdown) {
         // Close notification dropdown when clicking outside
         document.addEventListener('click', function(e) {
+            // Don't close if clicking on the bell or dropdown
             if (!desktopNotificationBell.contains(e.target) && !desktopNotificationDropdown.contains(e.target)) {
                 desktopNotificationDropdown.classList.remove('show');
             }
+        });
+        
+        // Prevent the bell click from being handled by the outside click listener
+        desktopNotificationBell.addEventListener('click', function(e) {
+            e.stopPropagation();
         });
     }
     
