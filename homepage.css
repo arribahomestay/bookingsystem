@@ -2061,13 +2061,16 @@ html {
         justify-content: center;
         gap: 15px;
         margin-bottom: 15px;
-        padding: 0 10px;
+        padding: 0 20px;
     }
 
 .weather-temp {
     font-size: 32px;
     font-weight: bold;
     color: #2c3e50;
+    text-align: center;
+    flex: 1;
+    margin: 0 10px;
 }
 
 .weather-icon {
@@ -2080,6 +2083,7 @@ html {
     grid-template-columns: 1fr 1fr;
     gap: 10px;
     font-size: 12px;
+    margin-top: 10px;
     color: #7f8c8d;
 }
 
@@ -2267,8 +2271,127 @@ html {
 
     .weather-main {
         margin-bottom: 8px;
-        padding: 0 10px 0 15px;
+        padding: 0 15px 0 20px;
         gap: 8px;
+    }
+}
+
+/* Weather Background Animations */
+.weather-widget-rain {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.weather-widget-wind {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.weather-widget-sun {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Rain Droplets Animation */
+.rain-drop {
+    position: absolute;
+    width: 2px;
+    height: 15px;
+    background: linear-gradient(to bottom, rgba(52, 152, 219, 0.8), rgba(52, 152, 219, 0.3));
+    border-radius: 0 0 2px 2px;
+    animation: rainFall linear infinite;
+}
+
+@keyframes rainFall {
+    0% {
+        transform: translateY(-20px);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(100px);
+        opacity: 0;
+    }
+}
+
+/* Wind Animation */
+.wind-particle {
+    position: absolute;
+    width: 3px;
+    height: 1px;
+    background: rgba(52, 152, 219, 0.6);
+    border-radius: 2px;
+    animation: windBlow linear infinite;
+}
+
+@keyframes windBlow {
+    0% {
+        transform: translateX(-20px) translateY(0px);
+        opacity: 0;
+    }
+    10% {
+        opacity: 1;
+    }
+    90% {
+        opacity: 1;
+    }
+    100% {
+        transform: translateX(120px) translateY(-10px);
+        opacity: 0;
+    }
+}
+
+/* Hot Sun Animation */
+.sun-rays {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 60px;
+    height: 60px;
+    animation: sunPulse 2s ease-in-out infinite;
+}
+
+.sun-ray {
+    position: absolute;
+    width: 2px;
+    height: 20px;
+    background: linear-gradient(to bottom, rgba(255, 193, 7, 0.8), rgba(255, 193, 7, 0.3));
+    border-radius: 1px;
+    transform-origin: bottom center;
+}
+
+.sun-ray:nth-child(1) { transform: rotate(0deg) translateY(-30px); }
+.sun-ray:nth-child(2) { transform: rotate(45deg) translateY(-30px); }
+.sun-ray:nth-child(3) { transform: rotate(90deg) translateY(-30px); }
+.sun-ray:nth-child(4) { transform: rotate(135deg) translateY(-30px); }
+.sun-ray:nth-child(5) { transform: rotate(180deg) translateY(-30px); }
+.sun-ray:nth-child(6) { transform: rotate(225deg) translateY(-30px); }
+.sun-ray:nth-child(7) { transform: rotate(270deg) translateY(-30px); }
+.sun-ray:nth-child(8) { transform: rotate(315deg) translateY(-30px); }
+
+@keyframes sunPulse {
+    0%, 100% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 0.6;
+    }
+    50% {
+        transform: translate(-50%, -50%) scale(1.2);
+        opacity: 0.9;
     }
 }
 

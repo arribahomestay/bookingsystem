@@ -101,11 +101,10 @@ function displayWeather(data) {
     const description = data.weather[0].description;
     const capitalizedDescription = description.charAt(0).toUpperCase() + description.slice(1);
     
+    // Add weather background animation based on conditions
+    addWeatherAnimation(data);
+    
     weatherContent.innerHTML = `
-        <div class="weather-main">
-            <div class="weather-temp">${Math.round(data.main.temp)}°C</div>
-            <img src="${iconUrl}" alt="${description}" class="weather-icon">
-        </div>
         <div class="weather-details">
             <div class="weather-detail">
                 <i class="fas fa-eye"></i>
@@ -143,6 +142,74 @@ function displayWeatherError() {
             </div>
         </div>
     `;
+}
+
+// Add weather background animations based on conditions
+function addWeatherAnimation(data) {
+    const weatherWidget = document.getElementById('weatherWidget');
+    
+    // Remove existing animations
+    const existingAnimations = weatherWidget.querySelectorAll('.weather-widget-rain, .weather-widget-wind, .weather-widget-sun');
+    existingAnimations.forEach(anim => anim.remove());
+    
+    const description = data.weather[0].description.toLowerCase();
+    const temperature = data.main.temp;
+    const windSpeed = data.wind.speed;
+    
+    // Rain animation for rainy conditions
+    if (description.includes('rain') || description.includes('drizzle') || description.includes('shower')) {
+        const rainContainer = document.createElement('div');
+        rainContainer.className = 'weather-widget-rain';
+        
+        // Create multiple rain drops
+        for (let i = 0; i < 15; i++) {
+            const drop = document.createElement('div');
+            drop.className = 'rain-drop';
+            drop.style.left = Math.random() * 100 + '%';
+            drop.style.animationDelay = Math.random() * 2 + 's';
+            drop.style.animationDuration = (Math.random() * 1 + 0.5) + 's';
+            rainContainer.appendChild(drop);
+        }
+        
+        weatherWidget.appendChild(rainContainer);
+    }
+    
+    // Wind animation for windy conditions
+    else if (windSpeed > 3 || description.includes('wind')) {
+        const windContainer = document.createElement('div');
+        windContainer.className = 'weather-widget-wind';
+        
+        // Create wind particles
+        for (let i = 0; i < 8; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'wind-particle';
+            particle.style.top = Math.random() * 80 + 10 + '%';
+            particle.style.animationDelay = Math.random() * 3 + 's';
+            particle.style.animationDuration = (Math.random() * 2 + 1) + 's';
+            windContainer.appendChild(particle);
+        }
+        
+        weatherWidget.appendChild(windContainer);
+    }
+    
+    // Hot sun animation for hot weather
+    else if (temperature > 30 || description.includes('clear') || description.includes('sunny')) {
+        const sunContainer = document.createElement('div');
+        sunContainer.className = 'weather-widget-sun';
+        
+        const sunRays = document.createElement('div');
+        sunRays.className = 'sun-rays';
+        
+        // Create 8 sun rays
+        for (let i = 0; i < 8; i++) {
+            const ray = document.createElement('div');
+            ray.className = 'sun-ray';
+            sunRays.appendChild(ray);
+        }
+        
+        sunContainer.appendChild(sunRays);
+        weatherWidget.appendChild(sunContainer);
+    }
 }
 
 // Toggle weather widget between compact and expanded view
