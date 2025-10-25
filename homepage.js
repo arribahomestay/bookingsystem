@@ -174,6 +174,34 @@ function addWeatherAnimation(data) {
         weatherWidget.appendChild(rainContainer);
     }
     
+    // Cloudy animation for cloudy conditions
+    else if (description.includes('cloud') || description.includes('overcast') || description.includes('cloudy')) {
+        const cloudsContainer = document.createElement('div');
+        cloudsContainer.className = 'weather-widget-clouds';
+        
+        // Create multiple clouds of different sizes
+        for (let i = 0; i < 8; i++) {
+            const cloud = document.createElement('div');
+            cloud.className = 'cloud';
+            
+            // Random cloud size
+            const cloudSizes = ['cloud-small', 'cloud-medium', 'cloud-large'];
+            const randomSize = cloudSizes[Math.floor(Math.random() * cloudSizes.length)];
+            cloud.classList.add(randomSize);
+            
+            // Position clouds in the background (avoid center where text is)
+            const topPosition = Math.random() * 60 + 10; // 10% to 70% from top
+            const leftPosition = Math.random() * 80 + 10; // 10% to 90% from left
+            cloud.style.top = topPosition + '%';
+            cloud.style.left = leftPosition + '%';
+            cloud.style.animationDelay = Math.random() * 10 + 's';
+            
+            cloudsContainer.appendChild(cloud);
+        }
+        
+        weatherWidget.appendChild(cloudsContainer);
+    }
+    
     // Wind animation for windy conditions
     else if (windSpeed > 3 || description.includes('wind')) {
         const windContainer = document.createElement('div');
