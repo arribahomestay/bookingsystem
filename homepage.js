@@ -279,7 +279,7 @@ function handleContactSubmission(e) {
     };
     
     // Show loading state
-    const submitBtn = e.target.querySelector('.submit-contact-btn');
+    const submitBtn = e.target.querySelector('.tropical-submit-btn');
     const originalText = submitBtn.textContent;
     submitBtn.textContent = 'Sending...';
     submitBtn.disabled = true;

@@ -1497,26 +1497,40 @@ body {
 @media (max-width: 768px) {
     .tropical-contact-container {
         flex-direction: column;
-        padding: 20px 10px;
+        padding: 40px 20px;
+        min-height: 400px;
+        overflow: visible;
+        position: relative;
     }
     
     .palm-tree {
-        position: relative;
-        margin: 20px auto;
+        position: absolute;
+        z-index: 1;
+        pointer-events: none;
     }
     
-    .left-palm,
+    .left-palm {
+        left: -15%;
+        bottom: 30%;
+        transform: scale(1.8);
+    }
+    
     .right-palm {
-        position: relative;
-        left: auto;
-        right: auto;
-        top: auto;
-        transform: scale(0.7);
+        right: -15%;
+        bottom: 25%;
+        transform: scale(1.6);
+    }
+    
+    .palm-tree-image {
+        width: 180px;
+        max-height: none;
     }
     
     .tropical-contact-form {
         padding: 30px 20px;
         margin: 20px 0;
+        z-index: 10;
+        position: relative;
     }
     
     .tropical-form .form-row {
