@@ -1341,6 +1341,189 @@ body {
     width: 20px;
 }
 
+/* Tropical Contact Form Styles */
+.tropical-contact-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 500px;
+    padding: 40px 20px;
+    overflow: visible;
+}
+
+.tropical-contact-form {
+    background: white;
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+    max-width: 500px;
+    width: 100%;
+    position: relative;
+    z-index: 10;
+    margin: 0 auto;
+}
+
+.tropical-contact-form h3 {
+    color: #2c3e50;
+    font-size: 1.8rem;
+    margin-bottom: 10px;
+    text-align: center;
+    font-weight: 700;
+}
+
+.tropical-contact-form p {
+    color: #6c757d;
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 1rem;
+}
+
+/* Palm Tree Styles */
+.palm-tree {
+    position: absolute;
+    z-index: 1;
+    animation: palmSway 4s ease-in-out infinite;
+    pointer-events: none;
+}
+
+.left-palm {
+    left: -15%;
+    bottom: 20%;
+    transform: scale(2.5);
+}
+
+.right-palm {
+    right: -20%;
+    bottom: 15%;
+    transform: scale(2.3);
+}
+
+.palm-tree-image {
+    width: 250px;
+    height: auto;
+    max-height: none;
+    object-fit: contain;
+    filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.4));
+    opacity: 0.9;
+}
+
+/* Palm Tree Animation */
+@keyframes palmSway {
+    0%, 100% {
+        transform: rotate(0deg);
+    }
+    25% {
+        transform: rotate(1deg);
+    }
+    75% {
+        transform: rotate(-1deg);
+    }
+}
+
+/* Tropical Form Styles */
+.tropical-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.tropical-form .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.tropical-form .form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.tropical-form label {
+    color: #2c3e50;
+    font-weight: 600;
+    margin-bottom: 5px;
+    font-size: 0.9rem;
+}
+
+.tropical-form input,
+.tropical-form textarea {
+    padding: 12px 15px;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: #f8f9fa;
+}
+
+.tropical-form input:focus,
+.tropical-form textarea:focus {
+    outline: none;
+    border-color: #3498db;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.tropical-form textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.tropical-submit-btn {
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    border-radius: 10px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.tropical-submit-btn:hover {
+    background: linear-gradient(135deg, #2980b9, #1f618d);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(52, 152, 219, 0.3);
+}
+
+.tropical-submit-btn:active {
+    transform: translateY(0);
+}
+
+/* Mobile Responsive for Tropical Form */
+@media (max-width: 768px) {
+    .tropical-contact-container {
+        flex-direction: column;
+        padding: 20px 10px;
+    }
+    
+    .palm-tree {
+        position: relative;
+        margin: 20px auto;
+    }
+    
+    .left-palm,
+    .right-palm {
+        position: relative;
+        left: auto;
+        right: auto;
+        top: auto;
+        transform: scale(0.7);
+    }
+    
+    .tropical-contact-form {
+        padding: 30px 20px;
+        margin: 20px 0;
+    }
+    
+    .tropical-form .form-row {
+        grid-template-columns: 1fr;
+    }
+}
+
 /* Contact Form Styles */
 .contact-form-container {
     background: white;
