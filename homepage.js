@@ -1964,8 +1964,438 @@ class Gallery {
     }
 }
 
+// Global variable to track Google Maps loading
+window.googleMapsLoaded = false;
+
 // Initialize gallery when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize gallery
     window.gallery = new Gallery();
+    
+    // Add smooth scroll for Explore More button
+    const exploreButton = document.querySelector('a[href="#explore"]');
+    if (exploreButton) {
+        exploreButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            const exploreSection = document.getElementById('explore');
+            if (exploreSection) {
+                exploreSection.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        });
+    }
+    
+    // Initialize location input functionality
+    initializeLocationInput();
 });
+
+// Google Maps callback function
+function initMap() {
+    window.googleMapsLoaded = true;
+    console.log('Google Maps API loaded successfully');
+}
+
+// Location Input Functionality
+function initializeLocationInput() {
+    const userLocationInput = document.getElementById('userLocation');
+    const getCurrentLocationBtn = document.getElementById('getCurrentLocation');
+    const getDirectionsBtn = document.getElementById('getDirections');
+    const directionsResult = document.getElementById('directionsResult');
+    const autocompleteDropdown = document.getElementById('autocompleteDropdown');
+    
+    // Homestay coordinates
+    const homestayCoords = {
+        lat: 9.77125143535154,
+        lng: 126.12964150776305,
+        address: 'Purok 1 Malinao, General Luna, Siargao'
+    };
+    
+    // Initialize Google Places Autocomplete
+    let autocomplete;
+    let placesService;
+    
+    // Wait for Google Maps to load
+    function initAutocomplete() {
+        if (window.googleMapsLoaded && typeof google !== 'undefined') {
+            autocomplete = new google.maps.places.AutocompleteService();
+            placesService = new google.maps.places.PlacesService(document.createElement('div'));
+            setupAutocomplete();
+        } else {
+            // Retry after a short delay
+            setTimeout(initAutocomplete, 500);
+        }
+    }
+    
+    // Setup autocomplete functionality
+    function setupAutocomplete() {
+        if (!autocomplete) return;
+        
+        let autocompleteTimeout;
+        
+        userLocationInput.addEventListener('input', function() {
+            const query = this.value.trim();
+            
+            if (query.length < 3) {
+                hideAutocomplete();
+                return;
+            }
+            
+            clearTimeout(autocompleteTimeout);
+            autocompleteTimeout = setTimeout(() => {
+                searchPlaces(query);
+            }, 300);
+        });
+        
+        // Hide dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!userLocationInput.contains(e.target) && !autocompleteDropdown.contains(e.target)) {
+                hideAutocomplete();
+            }
+        });
+    }
+    
+    // Search places using Google Places API
+    function searchPlaces(query) {
+        if (!autocomplete) return;
+        
+        const request = {
+            input: query,
+            types: ['geocode', 'establishment']
+        };
+        
+        autocomplete.getPlacePredictions(request, function(predictions, status) {
+            if (status === google.maps.places.PlacesServiceStatus.OK && predictions) {
+                showAutocomplete(predictions);
+            } else {
+                hideAutocomplete();
+            }
+        });
+    }
+    
+    // Show autocomplete dropdown
+    function showAutocomplete(predictions) {
+        autocompleteDropdown.innerHTML = '';
+        
+        predictions.slice(0, 5).forEach((prediction, index) => {
+            const item = document.createElement('div');
+            item.className = 'autocomplete-item';
+            item.innerHTML = `
+                <i class="fas fa-map-marker-alt"></i>
+                <div class="item-text">
+                    <div class="item-main">${prediction.structured_formatting.main_text}</div>
+                    <div class="item-secondary">${prediction.structured_formatting.secondary_text}</div>
+                </div>
+            `;
+            
+            item.addEventListener('click', function() {
+                userLocationInput.value = prediction.description;
+                hideAutocomplete();
+                getDirectionsBtn.disabled = false;
+            });
+            
+            autocompleteDropdown.appendChild(item);
+        });
+        
+        autocompleteDropdown.style.display = 'block';
+    }
+    
+    // Hide autocomplete dropdown
+    function hideAutocomplete() {
+        autocompleteDropdown.style.display = 'none';
+    }
+    
+    // Initialize autocomplete when Google Maps loads
+    initAutocomplete();
+    
+    // Enable/disable directions button based on input
+    if (userLocationInput) {
+        userLocationInput.addEventListener('input', function() {
+            getDirectionsBtn.disabled = !this.value.trim();
+        });
+    }
+    
+    // Get current location button
+    if (getCurrentLocationBtn) {
+        getCurrentLocationBtn.addEventListener('click', function() {
+            if (navigator.geolocation) {
+                this.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                this.disabled = true;
+                
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+                        
+                        // Reverse geocoding to get address
+                        reverseGeocode(lat, lng, function(address) {
+                            userLocationInput.value = address;
+                            getDirectionsBtn.disabled = false;
+                            getCurrentLocationBtn.innerHTML = '<i class="fas fa-crosshairs"></i>';
+                            getCurrentLocationBtn.disabled = false;
+                        });
+                    },
+                    function(error) {
+                        alert('Unable to get your location. Please enter it manually.');
+                        getCurrentLocationBtn.innerHTML = '<i class="fas fa-crosshairs"></i>';
+                        getCurrentLocationBtn.disabled = false;
+                    }
+                );
+            } else {
+                alert('Geolocation is not supported by this browser.');
+            }
+        });
+    }
+    
+    // Get directions button
+    if (getDirectionsBtn) {
+        getDirectionsBtn.addEventListener('click', function() {
+            const userLocation = userLocationInput.value.trim();
+            if (!userLocation) return;
+            
+            showDirections(userLocation, homestayCoords);
+        });
+    }
+    
+    // Reverse geocoding function
+    function reverseGeocode(lat, lng, callback) {
+        if (!window.googleMapsLoaded || typeof google === 'undefined') {
+            // Fallback: use coordinates if Google Maps isn't loaded
+            callback(`${lat.toFixed(6)}, ${lng.toFixed(6)}`);
+            return;
+        }
+        
+        const geocoder = new google.maps.Geocoder();
+        const latlng = { lat: lat, lng: lng };
+        
+        geocoder.geocode({ location: latlng }, function(results, status) {
+            if (status === 'OK' && results[0]) {
+                callback(results[0].formatted_address);
+            } else {
+                callback(`${lat.toFixed(6)}, ${lng.toFixed(6)}`);
+            }
+        });
+    }
+    
+    // Show directions
+    function showDirections(from, to) {
+        if (!window.googleMapsLoaded || typeof google === 'undefined') {
+            // Fallback: show basic directions without Google Maps API
+            showBasicDirections(from, to);
+            return;
+        }
+        
+        const directionsService = new google.maps.DirectionsService();
+        const directionsRenderer = new google.maps.DirectionsRenderer();
+        
+        const request = {
+            origin: from,
+            destination: `${to.lat},${to.lng}`,
+            travelMode: google.maps.TravelMode.DRIVING
+        };
+        
+        directionsService.route(request, function(result, status) {
+            if (status === 'OK') {
+                displayDirectionsResult(result, from, to);
+                showRouteOnMap(result);
+            } else {
+                showDirectionsError();
+            }
+        });
+    }
+    
+    // Show route on the embedded map
+    function showRouteOnMap(directionsResult) {
+        // Create a new map instance for route display
+        const mapContainer = document.getElementById('siargaoMap');
+        if (!mapContainer) return;
+        
+        // Create a new map div
+        const routeMapDiv = document.createElement('div');
+        routeMapDiv.id = 'routeMap';
+        routeMapDiv.style.width = '100%';
+        routeMapDiv.style.height = '400px';
+        routeMapDiv.style.borderRadius = '15px';
+        
+        // Replace the iframe with the new map
+        const iframe = mapContainer.querySelector('iframe');
+        if (iframe) {
+            iframe.style.display = 'none';
+        }
+        
+        // Clear existing route map if any
+        const existingRouteMap = document.getElementById('routeMap');
+        if (existingRouteMap) {
+            existingRouteMap.remove();
+        }
+        
+        mapContainer.appendChild(routeMapDiv);
+        
+        // Initialize the map
+        const map = new google.maps.Map(routeMapDiv, {
+            zoom: 12,
+            center: { lat: 9.77125143535154, lng: 126.12964150776305 },
+            mapTypeId: google.maps.MapTypeId.ROADMAP,
+            styles: [
+                {
+                    featureType: 'poi',
+                    elementType: 'labels',
+                    stylers: [{ visibility: 'off' }]
+                }
+            ]
+        });
+        
+        // Create directions renderer
+        const directionsRenderer = new google.maps.DirectionsRenderer({
+            draggable: false,
+            map: map,
+            suppressMarkers: false,
+            polylineOptions: {
+                strokeColor: '#3498db',
+                strokeWeight: 4,
+                strokeOpacity: 0.8
+            }
+        });
+        
+        // Set the directions
+        directionsRenderer.setDirections(directionsResult);
+        
+        // Add custom markers
+        const route = directionsResult.routes[0];
+        const leg = route.legs[0];
+        
+        // Origin marker
+        new google.maps.Marker({
+            position: leg.start_location,
+            map: map,
+            title: 'Your Location',
+            icon: {
+                url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+                    <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="16" cy="16" r="12" fill="#3498db" stroke="white" stroke-width="3"/>
+                        <circle cx="16" cy="16" r="6" fill="white"/>
+                    </svg>
+                `),
+                scaledSize: new google.maps.Size(32, 32),
+                anchor: new google.maps.Point(16, 16)
+            }
+        });
+        
+        // Destination marker (Arriba Homestay)
+        new google.maps.Marker({
+            position: leg.end_location,
+            map: map,
+            title: 'Arriba Homestay',
+            icon: {
+                url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+                    <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="20" cy="20" r="18" fill="#e74c3c" stroke="white" stroke-width="3"/>
+                        <path d="M20 8 L24 16 L20 24 L16 16 Z" fill="white"/>
+                    </svg>
+                `),
+                scaledSize: new google.maps.Size(40, 40),
+                anchor: new google.maps.Point(20, 20)
+            }
+        });
+        
+        // Fit map to show entire route
+        const bounds = new google.maps.LatLngBounds();
+        bounds.extend(leg.start_location);
+        bounds.extend(leg.end_location);
+        map.fitBounds(bounds);
+        
+        // Add padding to bounds
+        const listener = google.maps.event.addListener(map, 'idle', function() {
+            google.maps.event.removeListener(listener);
+            map.setZoom(Math.min(map.getZoom(), 15));
+        });
+    }
+    
+    // Basic directions without Google Maps API
+    function showBasicDirections(from, to) {
+        directionsResult.innerHTML = `
+            <h4><i class="fas fa-route"></i> Route to Arriba Homestay</h4>
+            <div class="directions-info">
+                <div class="direction-item">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span><strong>From:</strong> ${from}</span>
+                </div>
+                <div class="direction-item">
+                    <i class="fas fa-home"></i>
+                    <span><strong>To:</strong> ${to.address}</span>
+                </div>
+                <div class="direction-item">
+                    <i class="fas fa-info-circle"></i>
+                    <span><strong>Note:</strong> Detailed route information requires Google Maps</span>
+                </div>
+            </div>
+            <div class="directions-actions">
+                <a href="https://www.google.com/maps/dir/${encodeURIComponent(from)}/${to.lat},${to.lng}" target="_blank">
+                    <i class="fas fa-external-link-alt"></i>
+                    Open in Google Maps
+                </a>
+                <a href="https://maps.apple.com/?daddr=${to.lat},${to.lng}&saddr=${encodeURIComponent(from)}" target="_blank">
+                    <i class="fas fa-mobile-alt"></i>
+                    Open in Apple Maps
+                </a>
+            </div>
+        `;
+        directionsResult.style.display = 'block';
+    }
+    
+    // Display directions result
+    function displayDirectionsResult(result, from, to) {
+        const route = result.routes[0];
+        const leg = route.legs[0];
+        
+        const distance = leg.distance.text;
+        const duration = leg.duration.text;
+        
+        directionsResult.innerHTML = `
+            <h4><i class="fas fa-route"></i> Route to Arriba Homestay</h4>
+            <div class="directions-info">
+                <div class="direction-item">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span><strong>From:</strong> ${from}</span>
+                </div>
+                <div class="direction-item">
+                    <i class="fas fa-home"></i>
+                    <span><strong>To:</strong> ${to.address}</span>
+                </div>
+                <div class="direction-item">
+                    <i class="fas fa-road"></i>
+                    <span><strong>Distance:</strong> ${distance}</span>
+                </div>
+                <div class="direction-item">
+                    <i class="fas fa-clock"></i>
+                    <span><strong>Duration:</strong> ${duration}</span>
+                </div>
+            </div>
+            <div class="directions-actions">
+                <a href="https://www.google.com/maps/dir/${encodeURIComponent(from)}/${to.lat},${to.lng}" target="_blank">
+                    <i class="fas fa-external-link-alt"></i>
+                    Open in Google Maps
+                </a>
+                <a href="https://maps.apple.com/?daddr=${to.lat},${to.lng}&saddr=${encodeURIComponent(from)}" target="_blank">
+                    <i class="fas fa-mobile-alt"></i>
+                    Open in Apple Maps
+                </a>
+            </div>
+        `;
+        
+        directionsResult.style.display = 'block';
+    }
+    
+    // Show directions error
+    function showDirectionsError() {
+        directionsResult.innerHTML = `
+            <div style="text-align: center; color: #e74c3c;">
+                <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                <h4>Unable to get directions</h4>
+                <p>Please check your location and try again.</p>
+            </div>
+        `;
+        directionsResult.style.display = 'block';
+    }
+}

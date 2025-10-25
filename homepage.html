@@ -7,6 +7,7 @@
     <link rel="icon" href="logo.png" type="image/png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="homepage.css">
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB41DRUbKWJHPxaFjMAwdrzWzbVKartNGg&libraries=places&callback=initMap" async defer></script>
 </head>
 <body>
     <!-- Navigation -->
@@ -79,7 +80,7 @@
             <img src="welcome.png" alt="Welcome to Arriba Homestay" class="welcome-image">
             <div class="hero-buttons">
                 <a href="index.html" class="btn-primary">Book Your Stay</a>
-                <a href="#review" class="btn-secondary">Explore More</a>
+                <a href="#explore" class="btn-secondary">Explore More</a>
             </div>
         </div>
         <div class="hero-image">
@@ -140,6 +141,44 @@
                 </div>
                 <div class="gallery-description" id="galleryDescription">
                     Welcome to our beautiful homestay
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Location Map Section -->
+    <section id="location" class="location-section">
+        <div class="container">
+            <h2>Our Location</h2>
+            <p class="section-subtitle">Find us in the beautiful island of Siargao</p>
+            
+            <!-- Map Container -->
+            <div class="map-container">
+                <div class="map-wrapper">
+                    <div id="siargaoMap" class="map">
+                        <!-- Map will be embedded here -->
+                        <iframe 
+                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3956.1234567890!2d126.12964150776305!3d9.77125143535154!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zOcKwNDYnMTYuMyJOIDEyNsKwMDcnNDYuNyJF!5e0!3m2!1sen!2sph!4v1234567890123!5m2!1sen!2sph&q=9.77125143535154,126.12964150776305&markers=color:red%7Clabel:A%7C9.77125143535154,126.12964150776305" 
+                            width="100%" 
+                            height="400" 
+                            style="border:0; border-radius: 15px;" 
+                            allowfullscreen="" 
+                            loading="lazy" 
+                            referrerpolicy="no-referrer-when-downgrade">
+                        </iframe>
+                    </div>
+                    
+                    <!-- Custom Map Pin -->
+                    <div class="map-pin" id="mapPin">
+                        <div class="pin-icon">
+                            <i class="fas fa-home"></i>
+                        </div>
+                        <div class="pin-pulse"></div>
+                        <div class="pin-label">
+                            <div class="pin-title">Arriba Homestay</div>
+                            <div class="pin-address">Purok 1 Malinao, General Luna, Siargao</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
