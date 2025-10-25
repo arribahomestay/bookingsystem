@@ -1493,6 +1493,23 @@ body {
     margin-right: 10px;
 }
 
+/* Footer Logo */
+.footer-logo {
+    margin-bottom: 15px;
+}
+
+.footer-logo-img {
+    height: 100px;
+    width: auto;
+    object-fit: contain;
+    transition: all 0.3s ease;
+}
+
+.footer-logo-img:hover {
+    transform: scale(1.05);
+    filter: drop-shadow(0 0 10px rgba(52, 152, 219, 0.3));
+}
+
 /* Social Media Styles */
 .social-media {
     display: flex;
