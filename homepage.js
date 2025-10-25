@@ -1680,3 +1680,225 @@ document.addEventListener('keydown', function(event) {
         closeMediaModal();
     }
 });
+
+// Gallery Functionality
+class Gallery {
+    constructor() {
+        this.currentSlide = 0;
+        this.slides = [];
+        this.isAnimating = false;
+        this.autoPlayInterval = null;
+        this.touchStartX = 0;
+        this.touchEndX = 0;
+        
+        this.init();
+    }
+    
+    init() {
+        this.createSlides();
+        this.bindEvents();
+        this.updateGallery();
+        this.startAutoPlay();
+    }
+    
+    createSlides() {
+        // Arriba Homestay gallery images
+        this.slides = [
+            {
+                image: 'gallery/1.jpg',
+                title: 'Welcome to Arriba Homestay',
+                description: 'Experience the comfort and beauty of our homestay'
+            },
+            {
+                image: 'gallery/2.jpg',
+                title: 'Comfortable Living Space',
+                description: 'Relax in our spacious and well-appointed living areas'
+            },
+            {
+                image: 'gallery/3.jpg',
+                title: 'Beach Access',
+                description: 'Just steps away from the beautiful beaches of Siargao'
+            },
+            {
+                image: 'gallery/4.jpg',
+                title: 'Coastal Views',
+                description: 'Breathtaking ocean views and pristine beachfront location'
+            },
+            {
+                image: 'gallery/5.jpg',
+                title: 'Tropical Relaxation',
+                description: 'Chill and relax under swaying coconut trees in our peaceful tropical setting'
+            }
+        ];
+        
+        this.renderSlides();
+        this.renderDots();
+    }
+    
+    renderSlides() {
+        const slidesContainer = document.getElementById('gallerySlides');
+        if (!slidesContainer) return;
+        
+        slidesContainer.innerHTML = this.slides.map((slide, index) => `
+            <div class="gallery-slide ${index === 0 ? 'active' : ''}" data-slide="${index}">
+                <img src="${slide.image}" alt="${slide.title}" loading="lazy">
+                <div class="gallery-slide-content">
+                    <h3>${slide.title}</h3>
+                    <p>${slide.description}</p>
+                </div>
+            </div>
+        `).join('');
+    }
+    
+    renderDots() {
+        const dotsContainer = document.getElementById('galleryDots');
+        if (!dotsContainer) return;
+        
+        dotsContainer.innerHTML = this.slides.map((_, index) => `
+            <div class="gallery-dot ${index === 0 ? 'active' : ''}" data-slide="${index}"></div>
+        `).join('');
+    }
+    
+    bindEvents() {
+        // Navigation buttons
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        
+        if (prevBtn) prevBtn.addEventListener('click', () => this.prevSlide());
+        if (nextBtn) nextBtn.addEventListener('click', () => this.nextSlide());
+        
+        // Dot navigation
+        const dots = document.querySelectorAll('.gallery-dot');
+        dots.forEach((dot, index) => {
+            dot.addEventListener('click', () => this.goToSlide(index));
+        });
+        
+        // Touch events for mobile
+        const galleryContainer = document.querySelector('.gallery-container');
+        if (galleryContainer) {
+            galleryContainer.addEventListener('touchstart', (e) => this.handleTouchStart(e));
+            galleryContainer.addEventListener('touchend', (e) => this.handleTouchEnd(e));
+        }
+        
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') this.prevSlide();
+            if (e.key === 'ArrowRight') this.nextSlide();
+        });
+        
+        // Pause autoplay on hover
+        if (galleryContainer) {
+            galleryContainer.addEventListener('mouseenter', () => this.stopAutoPlay());
+            galleryContainer.addEventListener('mouseleave', () => this.startAutoPlay());
+        }
+    }
+    
+    handleTouchStart(e) {
+        this.touchStartX = e.touches[0].clientX;
+    }
+    
+    handleTouchEnd(e) {
+        this.touchEndX = e.changedTouches[0].clientX;
+        this.handleSwipe();
+    }
+    
+    handleSwipe() {
+        const swipeThreshold = 50;
+        const diff = this.touchStartX - this.touchEndX;
+        
+        if (Math.abs(diff) > swipeThreshold) {
+            if (diff > 0) {
+                this.nextSlide();
+            } else {
+                this.prevSlide();
+            }
+        }
+    }
+    
+    goToSlide(index) {
+        if (this.isAnimating || index === this.currentSlide) return;
+        
+        this.isAnimating = true;
+        this.currentSlide = index;
+        this.updateGallery();
+        
+        setTimeout(() => {
+            this.isAnimating = false;
+        }, 600);
+    }
+    
+    nextSlide() {
+        if (this.isAnimating) return;
+        
+        this.isAnimating = true;
+        this.currentSlide = (this.currentSlide + 1) % this.slides.length;
+        this.updateGallery();
+        
+        setTimeout(() => {
+            this.isAnimating = false;
+        }, 600);
+    }
+    
+    prevSlide() {
+        if (this.isAnimating) return;
+        
+        this.isAnimating = true;
+        this.currentSlide = (this.currentSlide - 1 + this.slides.length) % this.slides.length;
+        this.updateGallery();
+        
+        setTimeout(() => {
+            this.isAnimating = false;
+        }, 600);
+    }
+    
+    updateGallery() {
+        const slidesContainer = document.getElementById('gallerySlides');
+        const dots = document.querySelectorAll('.gallery-dot');
+        const currentSlideElement = document.getElementById('currentSlide');
+        const totalSlidesElement = document.getElementById('totalSlides');
+        const descriptionElement = document.getElementById('galleryDescription');
+        
+        if (slidesContainer) {
+            slidesContainer.style.transform = `translateX(-${this.currentSlide * 100}%)`;
+        }
+        
+        // Update dots
+        dots.forEach((dot, index) => {
+            dot.classList.toggle('active', index === this.currentSlide);
+        });
+        
+        // Update counter
+        if (currentSlideElement) {
+            currentSlideElement.textContent = this.currentSlide + 1;
+        }
+        
+        if (totalSlidesElement) {
+            totalSlidesElement.textContent = this.slides.length;
+        }
+        
+        // Update description
+        if (descriptionElement && this.slides[this.currentSlide]) {
+            descriptionElement.textContent = this.slides[this.currentSlide].description;
+        }
+    }
+    
+    startAutoPlay() {
+        this.stopAutoPlay();
+        this.autoPlayInterval = setInterval(() => {
+            this.nextSlide();
+        }, 5000);
+    }
+    
+    stopAutoPlay() {
+        if (this.autoPlayInterval) {
+            clearInterval(this.autoPlayInterval);
+            this.autoPlayInterval = null;
+        }
+    }
+}
+
+// Initialize gallery when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize gallery
+    window.gallery = new Gallery();
+});
