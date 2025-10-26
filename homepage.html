@@ -7,7 +7,9 @@
     <link rel="icon" href="logo.png" type="image/png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="homepage.css">
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB41DRUbKWJHPxaFjMAwdrzWzbVKartNGg&libraries=places&callback=initMap" async defer></script>
+    <!-- Mapbox GL JS -->
+    <link href='https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.css' rel='stylesheet' />
+    <script src='https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.js'></script>
 </head>
 <body>
     <!-- Navigation -->
@@ -156,28 +158,17 @@
             <div class="map-container">
                 <div class="map-wrapper">
                     <div id="siargaoMap" class="map">
-                        <!-- Map will be embedded here -->
-                        <iframe 
-                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3956.1234567890!2d126.12964150776305!3d9.77125143535154!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zOcKwNDYnMTYuMyJOIDEyNsKwMDcnNDYuNyJF!5e0!3m2!1sen!2sph!4v1234567890123!5m2!1sen!2sph&q=9.77125143535154,126.12964150776305&markers=color:red%7Clabel:A%7C9.77125143535154,126.12964150776305" 
-                            width="100%" 
-                            height="400" 
-                            style="border:0; border-radius: 15px;" 
-                            allowfullscreen="" 
-                            loading="lazy" 
-                            referrerpolicy="no-referrer-when-downgrade">
-                        </iframe>
+                        <!-- Mapbox 3D Map will be initialized here -->
                     </div>
                     
-                    <!-- Custom Map Pin -->
-                    <div class="map-pin" id="mapPin">
-                        <div class="pin-icon">
+                    <!-- Map Controls -->
+                    <div class="map-controls">
+                        <button id="toggle3D" class="map-control-btn" title="Toggle 3D View">
+                            <i class="fas fa-cube"></i>
+                        </button>
+                        <button id="resetView" class="map-control-btn" title="Reset View">
                             <i class="fas fa-home"></i>
-                        </div>
-                        <div class="pin-pulse"></div>
-                        <div class="pin-label">
-                            <div class="pin-title">Arriba Homestay</div>
-                            <div class="pin-address">Purok 1 Malinao, General Luna, Siargao</div>
-                        </div>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -409,6 +400,125 @@
     </script>
 
     <script src="homepage.js"></script>
+    
+    <!-- Mapbox 3D Map Script -->
+    <script>
+        // Set your Mapbox access token
+        mapboxgl.accessToken = 'pk.eyJ1IjoiZWpzZWd1aWRvIiwiYSI6ImNtaDdkOGJqODAyMzMya3Exb2ZyYWlmcXUifQ.UDeG5YHwJOAhFpc_tpDAuQ';
+        
+        // Initialize the map
+        const map = new mapboxgl.Map({
+            container: 'siargaoMap',
+            style: 'mapbox://styles/mapbox/satellite-streets-v12',
+            center: [126.12964150776305, 9.77125143535154], // Arriba Homestay coordinates
+            zoom: 16,
+            pitch: 45, // 3D tilt
+            bearing: 0
+        });
+        
+        // Add 3D terrain
+        map.on('load', () => {
+            // Add terrain source
+            map.addSource('mapbox-dem', {
+                'type': 'raster-dem',
+                'url': 'mapbox://mapbox.mapbox-terrain-dem-v1',
+                'tileSize': 512,
+                'maxzoom': 14
+            });
+            
+            // Set terrain
+            map.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.5 });
+            
+            // Add sky layer for realistic atmosphere
+            map.addLayer({
+                'id': 'sky',
+                'type': 'sky',
+                'paint': {
+                    'sky-type': 'atmosphere',
+                    'sky-atmosphere-sun': [0.0, 0.0],
+                    'sky-atmosphere-sun-intensity': 15
+                }
+            });
+            
+            // Add 3D buildings
+            map.addLayer({
+                'id': '3d-buildings',
+                'source': 'composite',
+                'source-layer': 'building',
+                'filter': ['==', 'extrude', 'true'],
+                'type': 'fill-extrusion',
+                'minzoom': 15,
+                'paint': {
+                    'fill-extrusion-color': '#aaa',
+                    'fill-extrusion-height': [
+                        'interpolate',
+                        ['linear'],
+                        ['zoom'],
+                        15,
+                        0,
+                        15.05,
+                        ['get', 'height']
+                    ],
+                    'fill-extrusion-base': [
+                        'interpolate',
+                        ['linear'],
+                        ['zoom'],
+                        15,
+                        0,
+                        15.05,
+                        ['get', 'min_height']
+                    ],
+                    'fill-extrusion-opacity': 0.6
+                }
+            });
+        });
+        
+        // Add custom marker for Arriba Homestay
+        const marker = new mapboxgl.Marker({
+            color: '#ff6b6b',
+            scale: 1.2
+        })
+        .setLngLat([126.12964150776305, 9.77125143535154])
+        .setPopup(new mapboxgl.Popup({ offset: 25 })
+            .setHTML(`
+                <div class="mapbox-popup">
+                    <h3>Arriba Homestay</h3>
+                    <p>Purok 1 Malinao, General Luna, Siargao</p>
+                    <p><i class="fas fa-phone"></i> +63 919 002 7790</p>
+                </div>
+            `))
+        .addTo(map);
+        
+        // 3D Toggle functionality
+        let is3D = true;
+        document.getElementById('toggle3D').addEventListener('click', () => {
+            is3D = !is3D;
+            if (is3D) {
+                map.easeTo({ pitch: 45, duration: 1000 });
+                document.getElementById('toggle3D').innerHTML = '<i class="fas fa-cube"></i>';
+            } else {
+                map.easeTo({ pitch: 0, duration: 1000 });
+                document.getElementById('toggle3D').innerHTML = '<i class="fas fa-square"></i>';
+            }
+        });
+        
+        // Reset view functionality
+        document.getElementById('resetView').addEventListener('click', () => {
+            map.easeTo({
+                center: [126.12964150776305, 9.77125143535154],
+                zoom: 16,
+                pitch: 45,
+                bearing: 0,
+                duration: 1500
+            });
+        });
+        
+        // Add navigation controls
+        map.addControl(new mapboxgl.NavigationControl(), 'top-right');
+        
+        // Add fullscreen control
+        map.addControl(new mapboxgl.FullscreenControl(), 'top-right');
+    </script>
     
     <!--Start of Tawk.to Script-->
     <script type="text/javascript">
