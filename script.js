@@ -1,5 +1,59 @@
 // Booking System JavaScript with Firebase Integration
 
+// Production Configuration
+const PRODUCTION_CONFIG = {
+    // Production reCAPTCHA site key
+    RECAPTCHA_SITE_KEY: '6LcNlfcrAAAAAFCZoXwniLEJ48I89OWnKo44FTgG',
+    
+    // Production reCAPTCHA secret key (for server-side verification)
+    RECAPTCHA_SECRET_KEY: '6LcNIfcrAAAAAAx9KhsuSHQHtJjsXsQv2jslsfQC',
+    
+    // Add your domain for additional security
+    ALLOWED_DOMAINS: [
+        'arribahomestay.github.io',
+        'www.arribahomestay.github.io',
+        'localhost',
+        '127.0.0.1'
+    ]
+};
+
+// CAPTCHA State Management
+let captchaVerified = false;
+
+// CAPTCHA Callback Functions
+function onCaptchaSuccess(token) {
+    console.log('CAPTCHA verification successful');
+    
+    // Validate domain for additional security
+    const currentDomain = window.location.hostname;
+    if (!PRODUCTION_CONFIG.ALLOWED_DOMAINS.includes(currentDomain)) {
+        console.warn('CAPTCHA verification from unauthorized domain:', currentDomain);
+    }
+    
+    captchaVerified = true;
+    document.getElementById('submitBtn').disabled = false;
+    document.getElementById('captcha-error').style.display = 'none';
+    
+    // Add success styling to submit button
+    const submitBtn = document.getElementById('submitBtn');
+    submitBtn.style.backgroundColor = '#4CAF50';
+    submitBtn.style.cursor = 'pointer';
+    
+    // Store token for server-side verification
+    window.captchaToken = token;
+}
+
+function onCaptchaExpired() {
+    console.log('CAPTCHA expired');
+    captchaVerified = false;
+    document.getElementById('submitBtn').disabled = true;
+    
+    // Reset submit button styling
+    const submitBtn = document.getElementById('submitBtn');
+    submitBtn.style.backgroundColor = '#ccc';
+    submitBtn.style.cursor = 'not-allowed';
+}
+
 // EmailJS Configuration for Booking Submitted Email
 const EMAILJS_CONFIG = {
     PUBLIC_KEY: "kDx6o0Gsh2ZtIqQvO",
@@ -629,6 +683,14 @@ document.addEventListener('DOMContentLoaded', function() {
         
         console.log('Form submission started...');
         
+        // Check CAPTCHA verification first
+        if (!captchaVerified) {
+            console.log('CAPTCHA verification required');
+            document.getElementById('captcha-error').style.display = 'block';
+            showNotification('Please complete the CAPTCHA verification to continue', 'error');
+            return;
+        }
+        
         // Add loading animation
         submitBtn.classList.add('loading');
         submitBtn.disabled = true;
@@ -650,6 +712,12 @@ document.addEventListener('DOMContentLoaded', function() {
             const cloudinaryUrl = receiptInput.getAttribute('data-cloudinary-url');
             console.log('Cloudinary URL:', cloudinaryUrl);
             
+            // Prepare CAPTCHA token for server-side verification
+            const captchaToken = window.captchaToken;
+            if (!captchaToken) {
+                throw new Error('CAPTCHA token not found');
+            }
+            
             const bookingData = {
                 customerName: document.getElementById('customerName').value.trim(),
                 phoneNumber: document.getElementById('phoneNumber').value.trim(),
@@ -664,7 +732,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 totalAmount: calculateTotalAmount(),
                 status: 'pending',
                 createdAt: new Date().toISOString(),
-                receiptUrl: cloudinaryUrl
+                receiptUrl: cloudinaryUrl,
+                captchaToken: captchaToken // Include CAPTCHA token for server verification
             };
 
             console.log('Booking data:', bookingData);
@@ -709,6 +778,14 @@ document.addEventListener('DOMContentLoaded', function() {
         clearAllErrors();
 
         console.log('Starting comprehensive form validation...');
+        
+        // Check CAPTCHA verification
+        if (!captchaVerified) {
+            console.log('CAPTCHA verification failed');
+            document.getElementById('captcha-error').style.display = 'block';
+            isValid = false;
+            errorCount++;
+        }
 
         // Validate required fields with detailed error messages
         const requiredFields = [
@@ -1289,6 +1366,12 @@ document.addEventListener('DOMContentLoaded', function() {
         errorMessages.forEach(message => {
             message.remove();
         });
+        
+        // Hide CAPTCHA error
+        const captchaError = document.getElementById('captcha-error');
+        if (captchaError) {
+            captchaError.style.display = 'none';
+        }
         
         // Remove error summary if exists
         const errorSummary = document.getElementById('errorSummary');

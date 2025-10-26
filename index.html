@@ -9,6 +9,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://widget.cloudinary.com/v2.0/global/all.js" type="text/javascript"></script>
+    <!-- Google reCAPTCHA v2 -->
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <script type="module">
         // Import Firebase modules
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js';
@@ -483,9 +485,20 @@
                         </div>
                     </div>
 
+                    <!-- CAPTCHA Section -->
+                    <div class="form-section">
+                        <div class="captcha-container">
+                            <div class="g-recaptcha" data-sitekey="6LcNlfcrAAAAAFCZoXwniLEJ48I89OWnKo44FTgG" data-callback="onCaptchaSuccess" data-expired-callback="onCaptchaExpired"></div>
+                            <div id="captcha-error" class="captcha-error" style="display: none;">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                Please complete the CAPTCHA verification
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Submit Button -->
                     <div class="form-section">
-                        <button type="submit" class="submit-btn" id="submitBtn">
+                        <button type="submit" class="submit-btn" id="submitBtn" disabled>
                             <i class="fas fa-paper-plane"></i>
                             Submit Booking
                         </button>
