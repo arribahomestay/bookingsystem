@@ -473,10 +473,21 @@
             });
         });
         
-        // Add custom marker for Arriba Homestay
+        // Create custom animated marker element
+        const markerElement = document.createElement('div');
+        markerElement.className = 'custom-marker';
+        markerElement.innerHTML = `
+            <div class="marker-pin">
+                <div class="marker-icon">
+                    <i class="fas fa-home"></i>
+                </div>
+            </div>
+        `;
+        
+        // Add custom marker to map
         const marker = new mapboxgl.Marker({
-            color: '#ff6b6b',
-            scale: 1.2
+            element: markerElement,
+            anchor: 'bottom'
         })
         .setLngLat([126.12964150776305, 9.77125143535154])
         .setPopup(new mapboxgl.Popup({ offset: 25 })
