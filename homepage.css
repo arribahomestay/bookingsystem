@@ -2528,6 +2528,26 @@ body {
     color: #bdc3c7;
 }
 
+/* POWERED BY LOGOS */
+.powered-by {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    margin-bottom: 15px;
+}
+
+.kuan-logo,
+.jen-logo {
+    height: 100px;
+    width: auto;
+    object-fit: contain;
+}
+
+.jen-logo {
+    filter: brightness(0) invert(1);
+}
+
 /* Mobile Responsive */
 @media (max-width: 768px) {
     /* TRANSPARENT NAVBAR ON MOBILE */
