@@ -235,24 +235,8 @@ function addWeatherAnimation(data) {
         weatherWidget.appendChild(windContainer);
     }
     
-    // Hot sun animation for hot weather
-    else if (temperature > 30 || description.includes('clear') || description.includes('sunny')) {
-        const sunContainer = document.createElement('div');
-        sunContainer.className = 'weather-widget-sun';
-        
-        const sunRays = document.createElement('div');
-        sunRays.className = 'sun-rays';
-        
-        // Create 8 sun rays
-        for (let i = 0; i < 8; i++) {
-            const ray = document.createElement('div');
-            ray.className = 'sun-ray';
-            sunRays.appendChild(ray);
-        }
-        
-        sunContainer.appendChild(sunRays);
-        weatherWidget.appendChild(sunContainer);
-    }
+    // REMOVED: Hot sun animation for hot weather (sun rays removed as requested)
+    // No animation for clear/sunny weather
 }
 
 // Toggle weather widget between compact and expanded view
