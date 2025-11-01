@@ -10,10 +10,12 @@ const PRODUCTION_CONFIG = {
     
     // Add your domain for additional security
     ALLOWED_DOMAINS: [
-        'arribahomestay.github.io',
-        'www.arribahomestay.github.io',
-        'localhost',
-        '127.0.0.1'
+        'arribahomestay.site',              // New custom domain
+        'www.arribahomestay.site',           // New custom domain with www
+        'arribahomestay.github.io',          // GitHub Pages (backup)
+        'www.arribahomestay.github.io',      // GitHub Pages with www (backup)
+        'localhost',                         // Local development
+        '127.0.0.1'                          // Local development
     ]
 };
 

@@ -6,16 +6,20 @@
    - Visit: https://www.google.com/recaptcha/admin
    - Sign in with your Google account
 
-2. **Create a New Site:**
-   - Click **"+ Create"** button
+2. **Update Your Existing Site (or Create New):**
+   - Go to your existing "Arriba Homestay Production" site
+   - Click on it to edit settings
    - **Label**: "Arriba Homestay Production"
    - **reCAPTCHA type**: Select "reCAPTCHA v2" → "I'm not a robot" Checkbox
-   - **Domains**: Add your domains:
-     - `arribahomestay.com`
-     - `www.arribahomestay.com`
-     - `localhost` (for testing)
+   - **Domains**: Add ALL your domains:
+     - `arribahomestay.site` (NEW - custom domain)
+     - `www.arribahomestay.site` (NEW - custom domain with www)
+     - `arribahomestay.github.io` (GitHub Pages)
+     - `www.arribahomestay.github.io` (GitHub Pages with www)
+     - `localhost` (for local testing)
+     - `127.0.0.1` (for local testing)
    - **Accept Terms of Service**
-   - Click **"Submit"**
+   - Click **"Save"** (or "Submit" if creating new)
 
 3. **Copy Your Keys:**
    - **Site Key** (starts with `6L...`) - for frontend
@@ -29,14 +33,19 @@
 <div class="g-recaptcha" data-sitekey="YOUR_ACTUAL_SITE_KEY" data-callback="onCaptchaSuccess" data-expired-callback="onCaptchaExpired"></div>
 ```
 
-### Replace in `script.js` (line 6):
+### Your `script.js` is already configured with:
 ```javascript
 const PRODUCTION_CONFIG = {
-    // Replace with your actual production reCAPTCHA site key
-    RECAPTCHA_SITE_KEY: 'YOUR_ACTUAL_SITE_KEY',
-    
-    // Add your domain for additional security
-    ALLOWED_DOMAINS: ['arribahomestay.com', 'www.arribahomestay.com']
+    RECAPTCHA_SITE_KEY: '6LcNlfcrAAAAAFCZoXwniLEJ48I89OWnKo44FTgG',
+    RECAPTCHA_SECRET_KEY: '6LcNIfcrAAAAAAx9KhsuSHQHtJjsXsQv2jslsfQC',
+    ALLOWED_DOMAINS: [
+        'arribahomestay.site',              // Custom domain
+        'www.arribahomestay.site',          // Custom domain with www
+        'arribahomestay.github.io',         // GitHub Pages
+        'www.arribahomestay.github.io',     // GitHub Pages with www
+        'localhost',                        // Local development
+        '127.0.0.1'                         // Local development
+    ]
 };
 ```
 
