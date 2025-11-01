@@ -2846,6 +2846,70 @@ function initializeBurgerMenuColor() {
     checkScrollPosition();
 }
 
+// SHOW WEATHER WIDGET FROM MENU (MOBILE ONLY)
+function showWeatherWidget() {
+    // ONLY SHOW ON MOBILE
+    if (window.innerWidth > 768) {
+        return;
+    }
+    
+    const weatherWidget = document.getElementById('weatherWidget');
+    if (!weatherWidget) return;
+    
+    // CREATE MODAL/OVERLAY FOR WEATHER WIDGET
+    let weatherModal = document.getElementById('weatherModal');
+    
+    if (!weatherModal) {
+        weatherModal = document.createElement('div');
+        weatherModal.id = 'weatherModal';
+        weatherModal.className = 'weather-modal';
+        weatherModal.innerHTML = `
+            <div class="weather-modal-content">
+                <div class="weather-modal-header">
+                    <h3>Weather Information</h3>
+                    <button class="weather-modal-close" onclick="closeWeatherWidget()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="weather-modal-body" id="weatherModalBody">
+                    <!-- WEATHER WIDGET CONTENT WILL BE INSERTED HERE -->
+                </div>
+            </div>
+        `;
+        document.body.appendChild(weatherModal);
+    }
+    
+    // CLONE WEATHER WIDGET CONTENT TO MODAL
+    const weatherContent = document.getElementById('weatherContent');
+    if (weatherContent) {
+        const modalBody = document.getElementById('weatherModalBody');
+        modalBody.innerHTML = weatherContent.innerHTML;
+    }
+    
+    // SHOW MODAL
+    weatherModal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    
+    // CLOSE MOBILE MENU
+    const navMenu = document.getElementById('navMenu');
+    const navToggle = document.getElementById('navToggle');
+    if (navMenu) navMenu.classList.remove('active');
+    if (navToggle) navToggle.classList.remove('active');
+}
+
+// CLOSE WEATHER WIDGET MODAL
+function closeWeatherWidget() {
+    const weatherModal = document.getElementById('weatherModal');
+    if (weatherModal) {
+        weatherModal.style.display = 'none';
+        document.body.style.overflow = '';
+    }
+}
+
+// MAKE FUNCTIONS GLOBAL
+window.showWeatherWidget = showWeatherWidget;
+window.closeWeatherWidget = closeWeatherWidget;
+
 // DYNAMIC ISLAND INTERACTION
 function initializeDynamicIsland() {
     const dynamicIsland = document.getElementById('dynamicIsland');
