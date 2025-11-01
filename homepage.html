@@ -236,12 +236,55 @@
             <!-- APPROVED REVIEWS DISPLAY -->
             <div class="reviews-display">
                 <h3>What Our Guests Say</h3>
-                <div id="approvedReviews" class="reviews-grid">
-                    <!-- REVIEWS LOADED DYNAMICALLY -->
+                <!-- PHONE MOCKUP CONTAINER -->
+                <div class="phone-mockup-container">
+                    <div class="phone-frame">
+                        <!-- PHONE NOTCH (DYNAMIC ISLAND) -->
+                        <div class="phone-notch dynamic-island" id="dynamicIsland">
+                            <div class="dynamic-island-content">
+                                <div class="mic-indicator"></div>
+                                <div class="camera-lens"></div>
+                                <div class="island-status-text">Arriba Homestay</div>
+                            </div>
+                        </div>
+                        <!-- PHONE SCREEN AREA -->
+                        <div class="phone-screen">
+                            <!-- iOS STATUS BAR -->
+                            <div class="ios-status-bar">
+                                <div class="status-left">
+                                    <span class="status-time" id="phoneTime">9:41</span>
+                                </div>
+                                <div class="status-right">
+                                    <div class="status-signal">
+                                        <span class="signal-bar"></span>
+                                        <span class="signal-bar"></span>
+                                        <span class="signal-bar"></span>
+                                        <span class="signal-bar"></span>
+                                    </div>
+                                    <div class="status-wifi">
+                                        <svg class="wifi-icon" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.07 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/>
+                                        </svg>
+                                    </div>
+                                    <div class="status-battery">
+                                        <div class="battery-level"></div>
+                                        <div class="battery-tip"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="phone-content-scroll" id="phoneReviewsContainer">
+                                <div id="approvedReviews" class="reviews-grid phone-reviews-grid">
+                                    <!-- REVIEWS LOADED DYNAMICALLY -->
                     <div class="no-reviews-message">
                         <i class="fas fa-star"></i>
                         <h4>Be the First to Share Your Experience!</h4>
                         <p>No reviews yet. Share your experience with Arriba Homestay and help other guests discover our amazing services.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- PHONE HOME INDICATOR -->
+                        <div class="phone-home-indicator"></div>
                     </div>
                 </div>
             </div>

@@ -1117,6 +1117,706 @@ body {
     gap: 30px;
 }
 
+/* PHONE MOCKUP CONTAINER - SCROLL INTO PHONE ANIMATION */
+.phone-mockup-container {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 800px;
+    margin: 60px 0;
+    padding: 40px 20px;
+    opacity: 0;
+    transform: translateY(300px) scale(0.9);
+    transition: opacity 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.phone-mockup-container.visible {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+
+/* STICKY PHONE WHEN IN VIEW - FOR SCROLL INTO PHONE EFFECT */
+.review-section {
+    position: relative;
+}
+
+@media (min-width: 769px) {
+    .reviews-display {
+        position: relative;
+        min-height: 1200px;
+    }
+    
+    .phone-mockup-container.visible {
+        position: sticky;
+        top: 80px;
+        z-index: 100;
+        align-self: flex-start;
+    }
+}
+
+/* PHONE FRAME - IPHONE STYLE */
+.phone-frame {
+    position: relative;
+    width: 360px;
+    height: 780px;
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    border-radius: 50px;
+    padding: 8px;
+    box-shadow: 
+        0 20px 60px rgba(0, 0, 0, 0.5),
+        inset 0 0 20px rgba(255, 255, 255, 0.1),
+        0 0 0 2px rgba(255, 255, 255, 0.05);
+}
+
+/* PHONE NOTCH (DYNAMIC ISLAND) */
+.phone-notch.dynamic-island {
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 30px;
+    background: #000;
+    border-radius: 20px;
+    z-index: 10;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+    overflow: hidden;
+}
+
+.dynamic-island.expanded {
+    width: 200px;
+    height: 35px;
+    border-radius: 17.5px;
+}
+
+.dynamic-island-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 100%;
+    padding: 0 12px;
+    position: relative;
+}
+
+.dynamic-island-content .mic-indicator {
+    width: 5px;
+    height: 5px;
+    background: #666;
+    border-radius: 50%;
+    position: absolute;
+    left: 15px;
+    opacity: 0.6;
+}
+
+.dynamic-island-content .camera-lens {
+    width: 8px;
+    height: 8px;
+    background: radial-gradient(circle, #1a1a1a 0%, #000 70%);
+    border: 1px solid #333;
+    border-radius: 50%;
+    position: absolute;
+    right: 15px;
+    box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.1);
+}
+
+.dynamic-island-content .island-status-text {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 500;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+    white-space: nowrap;
+    opacity: 0;
+    transform: scale(0.8);
+    transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+    letter-spacing: -0.2px;
+}
+
+.dynamic-island.expanded .island-status-text {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.dynamic-island.expanded .mic-indicator,
+.dynamic-island.expanded .camera-lens {
+    opacity: 0;
+}
+
+.dynamic-island:active {
+    transform: translateX(-50%) scale(0.95);
+}
+
+/* PHONE SCREEN */
+.phone-screen {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background: #fff;
+    border-radius: 42px;
+    overflow: hidden;
+    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.1);
+}
+
+/* iOS STATUS BAR */
+.ios-status-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 44px;
+    background: transparent;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 5;
+    pointer-events: none;
+}
+
+.status-left {
+    display: flex;
+    align-items: center;
+}
+
+.status-time {
+    font-size: 15px;
+    font-weight: 600;
+    color: #000;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', sans-serif;
+    letter-spacing: -0.3px;
+}
+
+.status-right {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* CELLULAR SIGNAL BARS */
+.status-signal {
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    height: 11px;
+}
+
+.signal-bar {
+    width: 3px;
+    background: #000;
+    border-radius: 1px;
+}
+
+.signal-bar:nth-child(1) {
+    height: 4px;
+}
+
+.signal-bar:nth-child(2) {
+    height: 5px;
+}
+
+.signal-bar:nth-child(3) {
+    height: 7px;
+}
+
+.signal-bar:nth-child(4) {
+    height: 9px;
+}
+
+/* WIFI ICON */
+.status-wifi {
+    width: 16px;
+    height: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.wifi-icon {
+    width: 16px;
+    height: 12px;
+    color: #000;
+}
+
+/* BATTERY */
+.status-battery {
+    width: 24px;
+    height: 12px;
+    border: 1.5px solid #000;
+    border-radius: 2.5px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding: 1px;
+    box-sizing: border-box;
+}
+
+.battery-level {
+    width: 85%;
+    height: 100%;
+    background: #000;
+    border-radius: 1px;
+}
+
+.battery-tip {
+    position: absolute;
+    right: -3px;
+    width: 2px;
+    height: 6px;
+    background: #000;
+    border-radius: 0 1px 1px 0;
+}
+
+/* SCROLLABLE CONTENT INSIDE PHONE */
+.phone-content-scroll {
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 64px 20px 80px; /* TOP PADDING FOR STATUS BAR */
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+}
+
+.phone-content-scroll::-webkit-scrollbar {
+    width: 4px;
+}
+
+.phone-content-scroll::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.phone-content-scroll::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 2px;
+}
+
+/* REVIEWS GRID INSIDE PHONE */
+.phone-reviews-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    grid-template-columns: 1fr;
+}
+
+.phone-reviews-grid .review-card {
+    width: 100%;
+    margin: 0;
+    min-width: 0;
+    background: #fff;
+    border-radius: 0;
+    box-shadow: none;
+    border-bottom: 1px solid #dbdbdb;
+    padding: 0;
+    transition: none;
+}
+
+/* INSTAGRAM-STYLE REVIEW CARD */
+.phone-reviews-grid .review-card:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+/* INSTAGRAM POST HEADER */
+.instagram-post-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid transparent;
+}
+
+.instagram-post-user {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.instagram-menu-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    color: #262626;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+}
+
+.instagram-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.instagram-username {
+    font-weight: 600;
+    font-size: 14px;
+    color: #262626;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* INSTAGRAM POST MEDIA */
+.instagram-post-media {
+    width: 100%;
+    background: #000;
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 1 / 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.instagram-post-media img,
+.instagram-post-media video {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+    object-position: center;
+}
+
+.instagram-post-media img {
+    min-height: 100%;
+}
+
+/* INSTAGRAM POST ACTIONS */
+.instagram-post-actions {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    gap: 16px;
+}
+
+.instagram-heart-btn,
+.instagram-action-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    position: relative;
+    transition: transform 0.2s ease;
+    color: #262626;
+}
+
+.instagram-heart-btn:active,
+.instagram-action-btn:active {
+    transform: scale(0.9);
+    opacity: 0.5;
+}
+
+.instagram-action-btn {
+    font-size: 24px;
+}
+
+.instagram-save-btn {
+    margin-left: auto;
+}
+
+.instagram-action-btn i {
+    color: #262626;
+}
+
+.instagram-bookmark-icon {
+    font-size: 24px;
+    color: #262626;
+    transition: all 0.3s ease;
+}
+
+.instagram-save-btn.saved .instagram-bookmark-icon {
+    color: #262626;
+}
+
+.instagram-save-btn.animate-save .instagram-bookmark-icon {
+    animation: saveBounce 0.4s ease;
+}
+
+@keyframes saveBounce {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.2);
+    }
+}
+
+.instagram-heart-icon {
+    font-size: 24px;
+    color: #262626;
+    transition: all 0.3s ease;
+}
+
+.instagram-heart-btn.liked .instagram-heart-icon {
+    color: #ed4956;
+}
+
+.instagram-heart-btn.liked .instagram-heart-icon {
+    font-weight: 900;
+}
+
+.instagram-heart-btn.liked .instagram-heart-icon::before {
+    content: '\f004';
+}
+
+/* HEART ANIMATION */
+.instagram-heart-btn.animate-heart .instagram-heart-icon {
+    animation: heartBeat 0.6s ease;
+}
+
+@keyframes heartBeat {
+    0%, 100% {
+        transform: scale(1);
+    }
+    25% {
+        transform: scale(1.3);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    75% {
+        transform: scale(1.2);
+    }
+}
+
+/* INSTAGRAM POST LIKES */
+.instagram-post-likes {
+    padding: 0 16px;
+    margin-bottom: 4px;
+    font-weight: 600;
+    font-size: 14px;
+    color: #262626;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    display: flex;
+    align-items: center;
+}
+
+/* INSTAGRAM POST CAPTION */
+.instagram-post-caption {
+    padding: 0 16px 8px;
+    font-size: 14px;
+    color: #262626;
+    line-height: 1.5;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    word-wrap: break-word;
+}
+
+.instagram-post-caption .instagram-username {
+    font-weight: 600;
+    margin-right: 4px;
+    color: #262626;
+}
+
+/* INSTAGRAM POST DATE */
+.instagram-post-date {
+    padding: 0 16px 16px;
+    font-size: 12px;
+    color: #8e8e8e;
+    text-transform: uppercase;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* REMOVE DEFAULT REVIEW CARD STYLES INSIDE PHONE */
+.phone-reviews-grid .review-card .review-header,
+.phone-reviews-grid .review-card .reviewer-info,
+.phone-reviews-grid .review-card .rating-display,
+.phone-reviews-grid .review-card .review-date,
+.phone-reviews-grid .review-card .review-text {
+    display: none;
+}
+
+/* HIDE PAGINATION INSIDE PHONE */
+.phone-content-scroll .reviews-pagination {
+    display: none;
+}
+
+/* PHONE HOME INDICATOR */
+.phone-home-indicator {
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 140px;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 5px;
+    z-index: 10;
+}
+
+/* MOBILE RESPONSIVE FOR PHONE MOCKUP */
+@media (max-width: 768px) {
+    .phone-mockup-container {
+        min-height: 600px;
+        padding: 20px 10px;
+        margin: 40px 0;
+    }
+    
+    .phone-frame {
+        width: 320px;
+        height: 680px;
+        border-radius: 40px;
+        padding: 6px;
+    }
+    
+    .phone-notch.dynamic-island {
+        width: 100px;
+        height: 25px;
+        top: 10px;
+        border-radius: 12.5px;
+    }
+    
+    .dynamic-island.expanded {
+        width: 160px;
+        height: 30px;
+    }
+    
+    .dynamic-island-content .mic-indicator {
+        width: 4px;
+        height: 4px;
+        left: 12px;
+    }
+    
+    .dynamic-island-content .camera-lens {
+        width: 6px;
+        height: 6px;
+        right: 12px;
+    }
+    
+    .dynamic-island-content .island-status-text {
+        font-size: 10px;
+    }
+    
+    .phone-screen {
+        border-radius: 34px;
+    }
+    
+    .ios-status-bar {
+        height: 40px;
+        padding: 0 15px;
+    }
+    
+    .status-time {
+        font-size: 14px;
+    }
+    
+    .phone-content-scroll {
+        padding: 54px 15px 70px;
+    }
+    
+    .phone-home-indicator {
+        width: 120px;
+        height: 4px;
+        bottom: 6px;
+    }
+}
+
+@media (max-width: 480px) {
+    .phone-mockup-container {
+        min-height: 500px;
+        padding: 15px 5px;
+        margin: 30px 0;
+    }
+    
+    .phone-frame {
+        width: 280px;
+        height: 600px;
+        border-radius: 35px;
+        padding: 5px;
+    }
+    
+    .phone-notch.dynamic-island {
+        width: 90px;
+        height: 22px;
+        top: 8px;
+        border-radius: 11px;
+    }
+    
+    .dynamic-island.expanded {
+        width: 140px;
+        height: 26px;
+    }
+    
+    .dynamic-island-content .mic-indicator {
+        width: 3px;
+        height: 3px;
+        left: 10px;
+    }
+    
+    .dynamic-island-content .camera-lens {
+        width: 5px;
+        height: 5px;
+        right: 10px;
+    }
+    
+    .dynamic-island-content .island-status-text {
+        font-size: 9px;
+    }
+    
+    .phone-screen {
+        border-radius: 30px;
+    }
+    
+    .ios-status-bar {
+        height: 38px;
+        padding: 0 12px;
+    }
+    
+    .status-time {
+        font-size: 13px;
+    }
+    
+    .status-signal {
+        gap: 1.5px;
+    }
+    
+    .signal-bar {
+        width: 2.5px;
+    }
+    
+    .status-wifi,
+    .wifi-icon {
+        width: 14px;
+        height: 10px;
+    }
+    
+    .status-battery {
+        width: 22px;
+        height: 11px;
+    }
+    
+    .phone-content-scroll {
+        padding: 48px 12px 60px;
+    }
+    
+    .phone-home-indicator {
+        width: 100px;
+        height: 3px;
+        bottom: 5px;
+    }
+    
+    .phone-reviews-grid .review-card {
+        padding: 20px;
+    }
+}
+
 .review-card {
     background: white;
     padding: 25px;

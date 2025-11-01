@@ -49,6 +49,15 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize logo fade on scroll (mobile only)
     initializeLogoFadeOnScroll();
+    
+    // Initialize phone mockup scroll animation
+    initializePhoneMockupScroll();
+    
+    // Initialize phone status bar
+    initializePhoneStatusBar();
+    
+    // Initialize dynamic island interaction
+    initializeDynamicIsland();
 });
 
 // Weather Widget Functionality
@@ -1579,12 +1588,21 @@ async function loadApprovedReviews(page = 1) {
         
         totalReviews = allReviews.length;
         
-        // Calculate pagination
-        const startIndex = (page - 1) * reviewsPerPage;
-        const endIndex = startIndex + reviewsPerPage;
-        const pageReviews = allReviews.slice(startIndex, endIndex);
+        // FOR PHONE MOCKUP - SHOW ALL REVIEWS FOR SCROLL EFFECT
+        // Check if we're in phone view (phone container exists)
+        const phoneContainer = document.querySelector('.phone-mockup-container');
         
-        displayReviews(pageReviews, page);
+        if (phoneContainer) {
+            // Show all reviews in phone for continuous scroll
+            displayReviews(allReviews, 1, true); // Pass true to indicate phone view
+        } else {
+            // Calculate pagination for regular view
+            const startIndex = (page - 1) * reviewsPerPage;
+            const endIndex = startIndex + reviewsPerPage;
+            const pageReviews = allReviews.slice(startIndex, endIndex);
+            
+            displayReviews(pageReviews, page, false);
+        }
         
     } catch (error) {
         console.error('Error loading reviews:', error);
@@ -1602,7 +1620,7 @@ function showReviewsLoading() {
     `;
 }
 
-function displayReviews(reviews, page = 1) {
+function displayReviews(reviews, page = 1, isPhoneView = false) {
     const reviewsGrid = document.getElementById('approvedReviews');
     
     if (reviews.length === 0) {
@@ -1613,11 +1631,21 @@ function displayReviews(reviews, page = 1) {
     // Display reviews
     reviewsGrid.innerHTML = reviews.map(review => createReviewCard(review)).join('');
     
-    // Add pagination controls
-    addPaginationControls(page);
+    // Only add pagination if not in phone view
+    if (!isPhoneView) {
+        addPaginationControls(page);
+    }
     
     // Add click handlers for media viewing
     addMediaViewers();
+    
+    // RESTORE INSTAGRAM LIKES AND SAVES FROM LOCALSTORAGE
+    if (isPhoneView) {
+        setTimeout(() => {
+            restoreInstagramLikes();
+            restoreInstagramSaves();
+        }, 100);
+    }
 }
 
 function showNoReviewsMessage() {
@@ -1674,12 +1702,19 @@ function createReviewCard(review) {
         day: 'numeric'
     });
     
+    // SHORT DATE FOR INSTAGRAM STYLE
+    const shortDate = new Date(review.submittedAt).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric'
+    });
+    
     let mediaHtml = '';
     
     // Only show images if they exist and have valid URLs
     if (review.images && review.images.length > 0 && review.images[0] !== '') {
-        mediaHtml += review.images.filter(img => img && img !== '').map(img => 
-            `<img src="${img}" alt="Guest photo" class="review-image" onclick="openMediaModal('${img}', 'image')" onerror="this.style.display='none'">`
+        const validImages = review.images.filter(img => img && img !== '');
+        mediaHtml += validImages.map(img => 
+            `<img src="${img}" alt="Guest photo" class="review-image" onclick="openMediaModal('${img}', 'image')" onerror="this.style.display='none'; this.parentElement.style.display='none';">`
         ).join('');
     }
     
@@ -1690,6 +1725,68 @@ function createReviewCard(review) {
         ).join('');
     }
     
+    // CHECK IF INSIDE PHONE MOCKUP - CREATE INSTAGRAM STYLE
+    const phoneContainer = document.querySelector('.phone-mockup-container');
+    const isInPhone = phoneContainer && document.getElementById('phoneReviewsContainer');
+    
+    if (isInPhone) {
+        // GET INITIALS FOR AVATAR
+        const initials = review.customerName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+        
+        // GENERATE UNIQUE ID FOR LIKE BUTTON (USE REVIEW ID OR CREATE HASH FROM NAME + DATE)
+        const reviewId = review.id || `${review.customerName}-${review.submittedAt}`.replace(/[^a-zA-Z0-9]/g, '');
+        const likeId = `like-${reviewId}`;
+        const saveId = `save-${reviewId}`;
+        
+        return `
+            <div class="review-card">
+                <!-- INSTAGRAM POST HEADER -->
+                <div class="instagram-post-header">
+                    <div class="instagram-post-user">
+                        <div class="instagram-avatar">${initials}</div>
+                        <span class="instagram-username">${review.customerName}</span>
+                    </div>
+                    <button class="instagram-menu-btn">
+                        <i class="fas fa-ellipsis-h"></i>
+                    </button>
+                </div>
+                
+                <!-- INSTAGRAM POST MEDIA -->
+                ${mediaHtml ? `
+                    <div class="instagram-post-media">
+                        ${mediaHtml}
+                    </div>
+                ` : ''}
+                
+                <!-- INSTAGRAM POST ACTIONS -->
+                <div class="instagram-post-actions">
+                    <button class="instagram-heart-btn" id="${likeId}" onclick="toggleInstagramLike('${likeId}', '${reviewId}')">
+                        <i class="far fa-heart instagram-heart-icon"></i>
+                    </button>
+                    <button class="instagram-action-btn">
+                        <i class="far fa-comment"></i>
+                    </button>
+                    <button class="instagram-action-btn">
+                        <i class="far fa-paper-plane"></i>
+                    </button>
+                    <button class="instagram-action-btn instagram-save-btn" id="${saveId}" onclick="toggleInstagramSave('${saveId}', '${reviewId}')">
+                        <i class="far fa-bookmark instagram-bookmark-icon"></i>
+                    </button>
+                </div>
+                
+                <!-- INSTAGRAM POST CAPTION -->
+                <div class="instagram-post-caption">
+                    <span class="instagram-username">${review.customerName}</span>
+                    ${review.reviewText}
+                </div>
+                
+                <!-- INSTAGRAM POST DATE -->
+                <div class="instagram-post-date">${shortDate}</div>
+            </div>
+        `;
+    }
+    
+    // REGULAR REVIEW CARD (NOT IN PHONE)
     return `
         <div class="review-card">
             <div class="review-header">
@@ -2489,3 +2586,265 @@ function initializeLogoFadeOnScroll() {
     // INITIAL CHECK
     checkScrollPosition();
 }
+
+// PHONE MOCKUP SCROLL ANIMATION - SCROLL INTO PHONE EFFECT
+function initializePhoneMockupScroll() {
+    const phoneContainer = document.querySelector('.phone-mockup-container');
+    const reviewSection = document.getElementById('review');
+    const phoneContentScroll = document.getElementById('phoneReviewsContainer');
+    
+    if (!phoneContainer || !reviewSection || !phoneContentScroll) return;
+    
+    let isPhoneVisible = false;
+    let lastScrollY = 0;
+    
+    // THROTTLE FUNCTION FOR PERFORMANCE
+    function throttle(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+    
+    // CHECK IF PHONE SHOULD BE VISIBLE
+    function checkPhoneVisibility() {
+        const scrollY = window.pageYOffset || window.scrollY;
+        const reviewSectionTop = reviewSection.offsetTop;
+        const reviewSectionHeight = reviewSection.offsetHeight;
+        const windowHeight = window.innerHeight;
+        
+        // SHOW PHONE WHEN REVIEW SECTION IS IN VIEWPORT
+        const triggerPoint = reviewSectionTop - windowHeight * 0.5;
+        const exitPoint = reviewSectionTop + reviewSectionHeight;
+        
+        if (scrollY >= triggerPoint && scrollY < exitPoint) {
+            if (!isPhoneVisible) {
+                phoneContainer.classList.add('visible');
+                isPhoneVisible = true;
+            }
+            
+            // SYNC SCROLLING INSIDE PHONE WITH PAGE SCROLL
+            const scrollProgress = (scrollY - triggerPoint) / (exitPoint - triggerPoint);
+            const maxScroll = phoneContentScroll.scrollHeight - phoneContentScroll.clientHeight;
+            
+            if (maxScroll > 0) {
+                phoneContentScroll.scrollTop = scrollProgress * maxScroll;
+            }
+        } else {
+            if (isPhoneVisible && scrollY < triggerPoint) {
+                phoneContainer.classList.remove('visible');
+                isPhoneVisible = false;
+            }
+        }
+        
+        lastScrollY = scrollY;
+    }
+    
+    // LISTEN FOR SCROLL EVENTS
+    const throttledCheck = throttle(checkPhoneVisibility, 10);
+    window.addEventListener('scroll', throttledCheck, { passive: true });
+    
+    // INITIAL CHECK
+    checkPhoneVisibility();
+    
+    // USE INTERSECTION OBSERVER AS FALLBACK
+    const observerOptions = {
+        root: null,
+        rootMargin: '-20% 0px -20% 0px',
+        threshold: 0.1
+    };
+    
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                phoneContainer.classList.add('visible');
+                isPhoneVisible = true;
+            }
+        });
+    }, observerOptions);
+    
+    observer.observe(reviewSection);
+}
+
+// UPDATE PHONE STATUS BAR TIME
+function updatePhoneTime() {
+    const phoneTime = document.getElementById('phoneTime');
+    if (phoneTime) {
+        const now = new Date();
+        const hours = now.getHours();
+        const minutes = now.getMinutes();
+        const timeString = `${hours}:${minutes.toString().padStart(2, '0')}`;
+        phoneTime.textContent = timeString;
+    }
+}
+
+// INITIALIZE PHONE STATUS BAR
+function initializePhoneStatusBar() {
+    // UPDATE TIME IMMEDIATELY
+    updatePhoneTime();
+    
+    // UPDATE TIME EVERY MINUTE
+    setInterval(updatePhoneTime, 60000);
+}
+
+// INSTAGRAM HEART LIKE FUNCTIONALITY
+function toggleInstagramLike(likeId, reviewId) {
+    const likeBtn = document.getElementById(likeId);
+    if (!likeBtn) return;
+    
+    const isLiked = likeBtn.classList.contains('liked');
+    const heartIcon = likeBtn.querySelector('.instagram-heart-icon');
+    
+    if (isLiked) {
+        // UNLIKE
+        likeBtn.classList.remove('liked', 'animate-heart');
+        if (heartIcon) {
+            heartIcon.classList.remove('fas');
+            heartIcon.classList.add('far');
+        }
+    } else {
+        // LIKE
+        likeBtn.classList.add('liked', 'animate-heart');
+        if (heartIcon) {
+            heartIcon.classList.remove('far');
+            heartIcon.classList.add('fas');
+        }
+        
+        // REMOVE ANIMATION CLASS AFTER ANIMATION COMPLETES
+        setTimeout(() => {
+            likeBtn.classList.remove('animate-heart');
+        }, 600);
+    }
+    
+    // SAVE LIKE STATE TO LOCALSTORAGE
+    const likeState = !isLiked;
+    localStorage.setItem(`review-like-${reviewId}`, likeState);
+}
+
+// RESTORE LIKE STATES FROM LOCALSTORAGE
+function restoreInstagramLikes() {
+    const likeButtons = document.querySelectorAll('.instagram-heart-btn');
+    likeButtons.forEach(btn => {
+        const likeId = btn.id;
+        if (!likeId) return;
+        const reviewId = likeId.replace('like-', '');
+        const isLiked = localStorage.getItem(`review-like-${reviewId}`) === 'true';
+        
+        if (isLiked) {
+            btn.classList.add('liked');
+            const heartIcon = btn.querySelector('.instagram-heart-icon');
+            if (heartIcon) {
+                heartIcon.classList.remove('far');
+                heartIcon.classList.add('fas');
+            }
+        }
+    });
+}
+
+// INSTAGRAM BOOKMARK/SAVE FUNCTIONALITY
+function toggleInstagramSave(saveId, reviewId) {
+    const saveBtn = document.getElementById(saveId);
+    if (!saveBtn) return;
+    
+    const isSaved = saveBtn.classList.contains('saved');
+    const bookmarkIcon = saveBtn.querySelector('.instagram-bookmark-icon');
+    
+    if (isSaved) {
+        // UNSAVE
+        saveBtn.classList.remove('saved', 'animate-save');
+        if (bookmarkIcon) {
+            bookmarkIcon.classList.remove('fas');
+            bookmarkIcon.classList.add('far');
+        }
+    } else {
+        // SAVE
+        saveBtn.classList.add('saved', 'animate-save');
+        if (bookmarkIcon) {
+            bookmarkIcon.classList.remove('far');
+            bookmarkIcon.classList.add('fas');
+        }
+        
+        // REMOVE ANIMATION CLASS AFTER ANIMATION COMPLETES
+        setTimeout(() => {
+            saveBtn.classList.remove('animate-save');
+        }, 400);
+    }
+    
+    // SAVE STATE TO LOCALSTORAGE
+    const saveState = !isSaved;
+    localStorage.setItem(`review-save-${reviewId}`, saveState);
+}
+
+// RESTORE SAVE STATES FROM LOCALSTORAGE
+function restoreInstagramSaves() {
+    const saveButtons = document.querySelectorAll('.instagram-save-btn');
+    saveButtons.forEach(btn => {
+        const saveId = btn.id;
+        if (!saveId) return;
+        const reviewId = saveId.replace('save-', '');
+        const isSaved = localStorage.getItem(`review-save-${reviewId}`) === 'true';
+        const bookmarkIcon = btn.querySelector('.instagram-bookmark-icon');
+        
+        if (isSaved) {
+            btn.classList.add('saved');
+            if (bookmarkIcon) {
+                bookmarkIcon.classList.remove('far');
+                bookmarkIcon.classList.add('fas');
+            }
+        }
+    });
+}
+
+// MAKE FUNCTIONS GLOBAL FOR ONCLICK
+window.toggleInstagramLike = toggleInstagramLike;
+window.toggleInstagramSave = toggleInstagramSave;
+
+// DYNAMIC ISLAND INTERACTION
+function initializeDynamicIsland() {
+    const dynamicIsland = document.getElementById('dynamicIsland');
+    if (!dynamicIsland) return;
+    
+    let isExpanded = false;
+    
+    // CLICK TO EXPAND/COLLAPSE
+    dynamicIsland.addEventListener('click', function(e) {
+        e.stopPropagation();
+        
+        if (isExpanded) {
+            // COLLAPSE
+            dynamicIsland.classList.remove('expanded');
+            isExpanded = false;
+        } else {
+            // EXPAND
+            dynamicIsland.classList.add('expanded');
+            isExpanded = true;
+            
+            // AUTO COLLAPSE AFTER 3 SECONDS
+            setTimeout(() => {
+                if (isExpanded) {
+                    dynamicIsland.classList.remove('expanded');
+                    isExpanded = false;
+                }
+            }, 3000);
+        }
+    });
+    
+    // ADD SMOOTH HOVER EFFECT
+    dynamicIsland.addEventListener('mouseenter', function() {
+        if (!isExpanded) {
+            this.style.transform = 'translateX(-50%) scale(1.05)';
+        }
+    });
+    
+    dynamicIsland.addEventListener('mouseleave', function() {
+        if (!isExpanded) {
+            this.style.transform = 'translateX(-50%) scale(1)';
+        }
+    });
+}
+
