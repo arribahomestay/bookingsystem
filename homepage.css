@@ -2061,18 +2061,18 @@ body {
     background: #f8f9fa;
 }
 
-.about-section h2 {
-    text-align: center;
-    font-size: 2.5rem;
-    margin-bottom: 50px;
-    color: #2c3e50;
-}
-
 .about-content {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 50px;
     align-items: center;
+}
+
+.about-text h2 {
+    text-align: left;
+    font-size: 2.5rem;
+    margin-bottom: 25px;
+    color: #2c3e50;
 }
 
 .about-text h3 {
@@ -3038,8 +3038,10 @@ body {
 
     .find-section h2,
     .explore-section h2,
-    .about-section h2 {
+    .about-text h2 {
+        text-align: center;
         font-size: 2rem;
+        margin-bottom: 20px;
     }
 
     /* Footer Mobile Styles */
