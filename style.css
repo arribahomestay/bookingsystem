@@ -146,11 +146,47 @@
 }
 
 @media (max-width: 768px) {
+    /* TRANSPARENT NAVBAR ON MOBILE */
+    .booking-nav {
+        background: transparent !important;
+        backdrop-filter: none !important;
+        box-shadow: none !important;
+        border: none !important;
+        outline: none !important;
+        animation: none;
+    }
+    
+    .booking-nav::before,
+    .booking-nav::after {
+        display: none !important;
+    }
+    
+    /* LOGO VISIBILITY ON TRANSPARENT BACKGROUND */
+    .nav-logo-img {
+        filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+    }
+    
+    /* BURGER MENU VISIBILITY - ADD SHADOW */
+    .nav-toggle .bar {
+        background: #2c3e50;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+        transition: background 0.3s ease, box-shadow 0.3s ease;
+    }
+    
     .nav-container {
         flex-direction: row;
         justify-content: space-between;
         height: 70px;
         padding: 0 20px;
+        background: transparent;
+        box-shadow: none;
+        border: none;
+        outline: none;
+    }
+    
+    .nav-container::before,
+    .nav-container::after {
+        display: none !important;
     }
     
     .nav-links {
