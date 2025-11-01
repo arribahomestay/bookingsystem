@@ -119,7 +119,7 @@ function displayWeather(data) {
     // Add weather background animation based on conditions
     addWeatherAnimation(data);
     
-    weatherContent.innerHTML = `
+    const weatherHTML = `
         <div class="weather-details">
             <div class="weather-detail">
                 <i class="fas fa-eye"></i>
@@ -143,11 +143,19 @@ function displayWeather(data) {
             <span>Dapa, General Luna, Siargao</span>
         </div>
     `;
+    
+    weatherContent.innerHTML = weatherHTML;
+    
+    // UPDATE MODAL IF IT'S OPEN
+    const modalBody = document.getElementById('weatherModalBody');
+    if (modalBody) {
+        modalBody.innerHTML = weatherHTML;
+    }
 }
 
 function displayWeatherError() {
     const weatherContent = document.getElementById('weatherContent');
-    weatherContent.innerHTML = `
+    const errorHTML = `
         <div class="weather-error">
             <i class="fas fa-exclamation-triangle"></i>
             <span>Unable to load weather data</span>
@@ -157,6 +165,14 @@ function displayWeatherError() {
             </div>
         </div>
     `;
+    
+    weatherContent.innerHTML = errorHTML;
+    
+    // UPDATE MODAL IF IT'S OPEN
+    const modalBody = document.getElementById('weatherModalBody');
+    if (modalBody) {
+        modalBody.innerHTML = errorHTML;
+    }
 }
 
 // Add weather background animations based on conditions
@@ -2879,11 +2895,32 @@ function showWeatherWidget() {
         document.body.appendChild(weatherModal);
     }
     
-    // CLONE WEATHER WIDGET CONTENT TO MODAL
+    // GET WEATHER CONTENT OR LOAD IT
     const weatherContent = document.getElementById('weatherContent');
-    if (weatherContent) {
-        const modalBody = document.getElementById('weatherModalBody');
+    const modalBody = document.getElementById('weatherModalBody');
+    
+    if (weatherContent && weatherContent.innerHTML.trim() && !weatherContent.innerHTML.includes('Loading...')) {
+        // CONTENT EXISTS, CLONE IT
         modalBody.innerHTML = weatherContent.innerHTML;
+    } else {
+        // NO CONTENT YET, LOAD WEATHER DATA
+        modalBody.innerHTML = `
+            <div class="weather-content">
+                <div class="weather-loading">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <span>Loading weather...</span>
+                </div>
+            </div>
+        `;
+        // TRIGGER WEATHER LOAD
+        initializeWeatherWidget();
+        // UPDATE MODAL AFTER A SHORT DELAY
+        setTimeout(() => {
+            const updatedContent = document.getElementById('weatherContent');
+            if (updatedContent && updatedContent.innerHTML.trim() && !updatedContent.innerHTML.includes('Loading...')) {
+                modalBody.innerHTML = updatedContent.innerHTML;
+            }
+        }, 1500);
     }
     
     // SHOW MODAL
@@ -2895,6 +2932,18 @@ function showWeatherWidget() {
     const navToggle = document.getElementById('navToggle');
     if (navMenu) navMenu.classList.remove('active');
     if (navToggle) navToggle.classList.remove('active');
+    
+    // UPDATE MODAL WHEN WEATHER CONTENT CHANGES
+    const observer = new MutationObserver(() => {
+        const updatedContent = document.getElementById('weatherContent');
+        if (updatedContent && updatedContent.innerHTML.trim() && !updatedContent.innerHTML.includes('Loading...')) {
+            modalBody.innerHTML = updatedContent.innerHTML;
+        }
+    });
+    
+    if (weatherContent) {
+        observer.observe(weatherContent, { childList: true, subtree: true });
+    }
 }
 
 // CLOSE WEATHER WIDGET MODAL

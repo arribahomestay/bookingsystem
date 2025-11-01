@@ -2568,8 +2568,8 @@ body {
     background: white;
     border-radius: 20px;
     width: 100%;
-    max-width: 400px;
-    max-height: 80vh;
+    max-width: 450px;
+    max-height: 85vh;
     overflow-y: auto;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
 }
@@ -2585,7 +2585,8 @@ body {
 .weather-modal-header h3 {
     margin: 0;
     color: #2c3e50;
-    font-size: 1.3rem;
+    font-size: 1.5rem;
+    font-weight: 700;
 }
 
 .weather-modal-close {
@@ -2609,13 +2610,98 @@ body {
 }
 
 .weather-modal-body {
-    padding: 20px;
+    padding: 30px;
 }
 
 .weather-modal-body .weather-content {
     background: transparent;
     box-shadow: none;
     padding: 0;
+}
+
+/* LARGE, READABLE WEATHER DETAILS IN MODAL */
+.weather-modal-body .weather-details {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+    font-size: 18px;
+    margin-top: 20px;
+    color: #2c3e50;
+    padding: 0;
+}
+
+.weather-modal-body .weather-detail {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 12px;
+    transition: background 0.3s ease;
+}
+
+.weather-modal-body .weather-detail:hover {
+    background: #e9ecef;
+}
+
+.weather-modal-body .weather-detail i {
+    color: #3498db;
+    font-size: 24px;
+    width: 30px;
+    text-align: center;
+}
+
+.weather-modal-body .weather-detail span {
+    font-size: 18px;
+    font-weight: 500;
+    color: #2c3e50;
+    flex: 1;
+}
+
+.weather-modal-body .weather-location {
+    text-align: center;
+    margin-top: 25px;
+    padding-top: 25px;
+    border-top: 2px solid #e0e0e0;
+    font-size: 16px;
+    color: #7f8c8d;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.weather-modal-body .weather-location i {
+    color: #3498db;
+    font-size: 20px;
+}
+
+.weather-modal-body .weather-loading {
+    text-align: center;
+    padding: 40px 20px;
+    font-size: 18px;
+    color: #7f8c8d;
+}
+
+.weather-modal-body .weather-loading i {
+    font-size: 32px;
+    color: #3498db;
+    margin-bottom: 15px;
+    display: block;
+}
+
+.weather-modal-body .weather-error {
+    text-align: center;
+    color: #e74c3c;
+    font-size: 18px;
+    padding: 30px 20px;
+}
+
+.weather-modal-body .weather-error i {
+    font-size: 32px;
+    margin-bottom: 15px;
+    display: block;
 }
 
 /* HIDE WEATHER MENU ON DESKTOP */
