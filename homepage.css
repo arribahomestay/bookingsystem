@@ -2573,10 +2573,17 @@ body {
         transform: translateY(-10px);
     }
     
-    /* ENSURE BURGER MENU IS VISIBLE */
+    /* BURGER MENU COLOR - WHITE IN HERO, DARK WHEN SCROLLED */
     .nav-toggle .bar {
         background: #2c3e50;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+        transition: background 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    /* WHITE BURGER MENU IN HERO SECTION */
+    .nav-toggle.in-hero .bar {
+        background: #ffffff;
+        box-shadow: 0 1px 3px rgba(255, 255, 255, 0.6);
     }
     
     /* ADJUST NAV CONTAINER PADDING FOR MOBILE */

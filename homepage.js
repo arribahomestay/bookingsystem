@@ -58,6 +58,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize dynamic island interaction
     initializeDynamicIsland();
+    
+    // Initialize burger menu color change on scroll
+    initializeBurgerMenuColor();
 });
 
 // Weather Widget Functionality
@@ -2808,6 +2811,56 @@ function restoreInstagramSaves() {
 // MAKE FUNCTIONS GLOBAL FOR ONCLICK
 window.toggleInstagramLike = toggleInstagramLike;
 window.toggleInstagramSave = toggleInstagramSave;
+
+// BURGER MENU COLOR CHANGE ON SCROLL (MOBILE ONLY)
+function initializeBurgerMenuColor() {
+    const navToggle = document.getElementById('navToggle');
+    const heroSection = document.getElementById('home');
+    
+    if (!navToggle || !heroSection) return;
+    
+    // CHECK SCROLL POSITION
+    function checkScrollPosition() {
+        // ONLY ON MOBILE (768px and below)
+        if (window.innerWidth > 768) {
+            navToggle.classList.remove('in-hero');
+            return;
+        }
+        
+        const scrollY = window.pageYOffset || window.scrollY;
+        const heroBottom = heroSection.offsetTop + heroSection.offsetHeight;
+        
+        // IF IN HERO SECTION, MAKE BURGER MENU WHITE
+        if (scrollY < heroBottom - 100) {
+            navToggle.classList.add('in-hero');
+        } 
+        // IF SCROLLED PAST HERO, MAKE BURGER MENU DARK BLUE
+        else {
+            navToggle.classList.remove('in-hero');
+        }
+    }
+    
+    // THROTTLE SCROLL EVENT FOR PERFORMANCE
+    let scrollTimeout;
+    window.addEventListener('scroll', function() {
+        if (scrollTimeout) {
+            clearTimeout(scrollTimeout);
+        }
+        scrollTimeout = setTimeout(checkScrollPosition, 10);
+    }, { passive: true });
+    
+    // CHECK ON RESIZE
+    window.addEventListener('resize', function() {
+        if (window.innerWidth > 768) {
+            navToggle.classList.remove('in-hero');
+        } else {
+            checkScrollPosition();
+        }
+    });
+    
+    // INITIAL CHECK
+    checkScrollPosition();
+}
 
 // DYNAMIC ISLAND INTERACTION
 function initializeDynamicIsland() {
