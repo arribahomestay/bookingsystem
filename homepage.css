@@ -1479,6 +1479,20 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    border-radius: 0;
+}
+
+/* ROUNDED CORNERS FOR IMAGES ON MOBILE */
+@media (max-width: 768px) {
+    .instagram-post-media {
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    
+    .instagram-post-media img,
+    .instagram-post-media video {
+        border-radius: 8px;
+    }
 }
 
 .instagram-post-media img,
@@ -1488,6 +1502,7 @@ body {
     display: block;
     object-fit: cover;
     object-position: center;
+    border-radius: 0;
 }
 
 .instagram-post-media img {
@@ -1814,6 +1829,17 @@ body {
     
     .phone-reviews-grid .review-card {
         padding: 20px;
+    }
+    
+    /* ROUNDED CORNERS FOR IMAGES ON MOBILE */
+    .instagram-post-media {
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    
+    .instagram-post-media img,
+    .instagram-post-media video {
+        border-radius: 8px;
     }
 }
 
