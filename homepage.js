@@ -2671,13 +2671,18 @@ function initializePhoneMockupScroll() {
     observer.observe(reviewSection);
 }
 
-// UPDATE PHONE STATUS BAR TIME
+// UPDATE PHONE STATUS BAR TIME (12-HOUR FORMAT)
 function updatePhoneTime() {
     const phoneTime = document.getElementById('phoneTime');
     if (phoneTime) {
         const now = new Date();
-        const hours = now.getHours();
+        let hours = now.getHours();
         const minutes = now.getMinutes();
+        
+        // CONVERT TO 12-HOUR FORMAT (NO AM/PM)
+        hours = hours % 12;
+        hours = hours ? hours : 12; // 0 should be 12
+        
         const timeString = `${hours}:${minutes.toString().padStart(2, '0')}`;
         phoneTime.textContent = timeString;
     }
