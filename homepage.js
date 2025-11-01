@@ -46,6 +46,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize homepage loading animation
     initializeHomepageLoading();
+    
+    // Initialize logo fade on scroll (mobile only)
+    initializeLogoFadeOnScroll();
 });
 
 // Weather Widget Functionality
@@ -2426,4 +2429,63 @@ function initializeLocationInput() {
         `;
         directionsResult.style.display = 'block';
     }
+}
+
+// LOGO FADE ON SCROLL (MOBILE ONLY)
+function initializeLogoFadeOnScroll() {
+    const navLogo = document.querySelector('.nav-logo');
+    const heroSection = document.getElementById('home');
+    const findSection = document.getElementById('find');
+    
+    if (!navLogo || !heroSection || !findSection) return;
+    
+    // INITIALLY HIDE LOGO ON MOBILE
+    if (window.innerWidth <= 768) {
+        navLogo.classList.add('hidden');
+        navLogo.classList.remove('visible');
+    }
+    
+    // CHECK SCROLL POSITION
+    function checkScrollPosition() {
+        // ONLY APPLY ON MOBILE (768px and below)
+        if (window.innerWidth > 768) {
+            navLogo.classList.remove('hidden', 'visible');
+            return;
+        }
+        
+        const scrollY = window.pageYOffset || window.scrollY;
+        const heroBottom = heroSection.offsetTop + heroSection.offsetHeight;
+        
+        // IF SCROLLED PAST HERO SECTION, SHOW LOGO WITH FADE IN
+        if (scrollY > heroBottom - 150) {
+            navLogo.classList.remove('hidden');
+            navLogo.classList.add('visible');
+        } 
+        // IF STILL IN HERO SECTION, HIDE LOGO WITH FADE OUT
+        else {
+            navLogo.classList.remove('visible');
+            navLogo.classList.add('hidden');
+        }
+    }
+    
+    // THROTTLE SCROLL EVENT FOR PERFORMANCE
+    let scrollTimeout;
+    window.addEventListener('scroll', function() {
+        if (scrollTimeout) {
+            clearTimeout(scrollTimeout);
+        }
+        scrollTimeout = setTimeout(checkScrollPosition, 10);
+    }, { passive: true });
+    
+    // CHECK ON RESIZE
+    window.addEventListener('resize', function() {
+        if (window.innerWidth > 768) {
+            navLogo.classList.remove('hidden', 'visible');
+        } else {
+            checkScrollPosition();
+        }
+    });
+    
+    // INITIAL CHECK
+    checkScrollPosition();
 }

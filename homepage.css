@@ -1804,6 +1804,69 @@ body {
 
 /* Mobile Responsive */
 @media (max-width: 768px) {
+    /* TRANSPARENT NAVBAR ON MOBILE */
+    .navbar {
+        background: transparent !important;
+        backdrop-filter: none !important;
+        box-shadow: none !important;
+        border: none !important;
+        outline: none !important;
+        animation: none;
+    }
+    
+    .navbar::before,
+    .navbar::after {
+        display: none !important;
+    }
+    
+    /* LOGO FADE ANIMATION ON MOBILE */
+    .nav-logo {
+        transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+    }
+    
+    .nav-logo.hidden {
+        opacity: 0;
+        transform: translateY(-10px);
+        pointer-events: none;
+    }
+    
+    .nav-logo.visible {
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: all;
+    }
+    
+    /* INITIALLY HIDE LOGO ON HERO SECTION */
+    .nav-logo-img {
+        filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+    }
+    
+    /* START WITH LOGO HIDDEN ON MOBILE ONLY */
+    .nav-logo.hidden {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    
+    /* ENSURE BURGER MENU IS VISIBLE */
+    .nav-toggle .bar {
+        background: #2c3e50;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+    }
+    
+    /* ADJUST NAV CONTAINER PADDING FOR MOBILE */
+    .nav-container {
+        padding: 0 15px;
+        background: transparent;
+        box-shadow: none;
+        border: none;
+        outline: none;
+    }
+    
+    .nav-container::before,
+    .nav-container::after {
+        display: none;
+    }
+    
     .nav-menu {
         position: fixed;
         left: -100%;
