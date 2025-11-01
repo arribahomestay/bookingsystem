@@ -7,12 +7,12 @@
     <link rel="icon" href="logo.png" type="image/png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="homepage.css">
-    <!-- Mapbox GL JS -->
+    <!-- MAPBOX 3D MAPS -->
     <link href='https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.css' rel='stylesheet' />
     <script src='https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.js'></script>
 </head>
 <body>
-    <!-- Navigation -->
+    <!-- TOP NAVIGATION MENU -->
     <nav class="navbar">
         <div class="nav-container">
             <div class="nav-logo">
@@ -38,7 +38,7 @@
         </div>
     </nav>
 
-    <!-- Live Sun/Moon Widget -->
+    <!-- TIME AND SUN/MOON WIDGET -->
     <div class="live-sun-moon-widget" id="sunMoonWidget">
         <div class="sun-moon-container">
             <div class="sun-moon-icon" id="sunMoonIcon">
@@ -49,7 +49,7 @@
         </div>
     </div>
 
-    <!-- Floating Weather Widget -->
+    <!-- WEATHER WIDGET -->
     <div class="floating-weather-widget" id="weatherWidget">
         <div class="weather-header" onclick="toggleWeatherWidget()">
             <div class="weather-compact" id="weatherCompact">
@@ -76,7 +76,7 @@
         </div>
     </div>
 
-    <!-- Hero Section -->
+    <!-- HERO BANNER SECTION -->
     <section id="home" class="hero">
         <div class="hero-content">
             <img src="welcome.png" alt="Welcome to Arriba Homestay" class="welcome-image">
@@ -86,11 +86,11 @@
             </div>
         </div>
         <div class="hero-image">
-            <!-- Hero image is now the background -->
+            <!-- HERO BACKGROUND IMAGE -->
         </div>
     </section>
 
-    <!-- Find Section -->
+    <!-- BOOKING STATUS CHECKER -->
     <section id="find" class="find-section">
         <div class="container">
             <h2>Check Your Booking Status</h2>
@@ -102,27 +102,27 @@
                     </button>
                 </div>
                 <div id="bookingStatusResult" class="status-result" style="display: none;">
-                    <!-- Status result will be displayed here -->
+                    <!-- BOOKING STATUS RESULTS SHOW HERE -->
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Explore Section -->
+    <!-- PHOTO GALLERY SECTION -->
     <section id="explore" class="explore-section">
         <div class="container">
             <h2>Explore Our Homestay</h2>
             <p class="section-subtitle">Discover the beauty and comfort of Arriba Homestay</p>
             
-            <!-- Gallery Container -->
+            <!-- GALLERY CONTAINER -->
             <div class="gallery-container">
                 <div class="gallery-wrapper">
                     <div class="gallery-slides" id="gallerySlides">
-                        <!-- Gallery slides will be populated by JavaScript -->
+                        <!-- GALLERY IMAGES LOADED BY JAVASCRIPT -->
                     </div>
                 </div>
                 
-                <!-- Navigation Controls -->
+                <!-- GALLERY NAVIGATION BUTTONS -->
                 <button class="gallery-nav prev-btn" id="prevBtn">
                     <i class="fas fa-chevron-left"></i>
                 </button>
@@ -130,13 +130,13 @@
                     <i class="fas fa-chevron-right"></i>
                 </button>
                 
-                <!-- Pagination Dots -->
+                <!-- GALLERY PAGE DOTS -->
                 <div class="gallery-dots" id="galleryDots">
-                    <!-- Dots will be populated by JavaScript -->
+                    <!-- DOTS CREATED BY JAVASCRIPT -->
                 </div>
             </div>
             
-            <!-- Gallery Info -->
+            <!-- GALLERY INFO DISPLAY -->
             <div class="gallery-info">
                 <div class="gallery-counter">
                     <span id="currentSlide">1</span> / <span id="totalSlides">5</span>
@@ -148,20 +148,20 @@
         </div>
     </section>
 
-    <!-- Location Map Section -->
+    <!-- LOCATION MAP SECTION -->
     <section id="location" class="location-section">
         <div class="container">
             <h2>Our Location</h2>
             <p class="section-subtitle">Find us in the beautiful island of Siargao</p>
             
-            <!-- Map Container -->
+            <!-- MAPBOX 3D MAP CONTAINER -->
             <div class="map-container">
                 <div class="map-wrapper">
                     <div id="siargaoMap" class="map">
-                        <!-- Mapbox 3D Map will be initialized here -->
+                        <!-- 3D MAP LOADS HERE -->
                     </div>
                     
-                    <!-- Map Controls -->
+                    <!-- MAP CONTROLS -->
                     <div class="map-controls">
                         <button id="toggle3D" class="map-control-btn" title="Toggle 3D View">
                             <i class="fas fa-cube"></i>
@@ -175,13 +175,13 @@
         </div>
     </section>
 
-    <!-- Review Section -->
+    <!-- REVIEWS SECTION -->
     <section id="review" class="review-section">
         <div class="container">
             <h2>Customer Reviews</h2>
             <p class="section-subtitle">Share your experience with Arriba Homestay</p>
             
-            <!-- Review Form -->
+            <!-- REVIEW FORM -->
             <div class="review-form-container">
                 <h3>Write a Review</h3>
                 <form id="reviewForm" class="review-form">
@@ -233,11 +233,11 @@
                 </form>
             </div>
             
-            <!-- Approved Reviews Display -->
+            <!-- APPROVED REVIEWS DISPLAY -->
             <div class="reviews-display">
                 <h3>What Our Guests Say</h3>
                 <div id="approvedReviews" class="reviews-grid">
-                    <!-- Approved reviews will be loaded dynamically here -->
+                    <!-- REVIEWS LOADED DYNAMICALLY -->
                     <div class="no-reviews-message">
                         <i class="fas fa-star"></i>
                         <h4>Be the First to Share Your Experience!</h4>
@@ -248,7 +248,7 @@
         </div>
     </section>
 
-    <!-- About Us Section -->
+    <!-- ABOUT US SECTION -->
     <section id="about" class="about-section">
         <div class="container">
             <h2>About Arriba Homestay</h2>
@@ -274,14 +274,14 @@
                     </div>
                 </div>
                 <div class="about-image">
-                    <!-- Tropical Contact Form -->
+                    <!-- CONTACT FORM WITH PALM TREES -->
                     <div class="tropical-contact-container">
-                        <!-- Left Palm Tree -->
+                        <!-- LEFT PALM TREE -->
                         <div class="palm-tree left-palm">
                             <img src="palm-tree-left.png" alt="Palm Tree" class="palm-tree-image">
                         </div>
                         
-                        <!-- Contact Form -->
+                        <!-- CONTACT FORM -->
                         <div class="tropical-contact-form">
                             <h3>Send us a Message</h3>
                             <p>Have suggestions or questions? We'd love to hear from you!</p>
@@ -309,7 +309,7 @@
                             <div id="contactSubmitMessage" class="contact-submit-message" style="display: none;"></div>
                         </div>
                         
-                        <!-- Right Palm Tree -->
+                        <!-- RIGHT PALM TREE -->
                         <div class="palm-tree right-palm">
                             <img src="palm-tree-right.png" alt="Palm Tree" class="palm-tree-image">
                         </div>
@@ -319,7 +319,7 @@
         </div>
     </section>
 
-    <!-- Footer -->
+    <!-- FOOTER -->
     <footer class="footer">
         <div class="container">
             <div class="footer-content">
@@ -372,7 +372,7 @@
         </div>
     </footer>
 
-    <!-- Firebase -->
+    <!-- FIREBASE SETUP -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js';
         import { getFirestore } from 'https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js';
@@ -392,7 +392,7 @@
         const db = getFirestore(app);
         const storage = getStorage(app);
         
-        // Make db available globally
+        // MAKE FIREBASE AVAILABLE EVERYWHERE
         window.db = db;
         window.storage = storage;
         
@@ -401,24 +401,24 @@
 
     <script src="homepage.js"></script>
     
-    <!-- Mapbox 3D Map Script -->
+    <!-- MAPBOX 3D MAP SETUP -->
     <script>
-        // Set your Mapbox access token
+        // MAPBOX ACCESS TOKEN
         mapboxgl.accessToken = 'pk.eyJ1IjoiZWpzZWd1aWRvIiwiYSI6ImNtaDdkOGJqODAyMzMya3Exb2ZyYWlmcXUifQ.UDeG5YHwJOAhFpc_tpDAuQ';
         
-        // Initialize the map
+        // CREATE THE 3D MAP
         const map = new mapboxgl.Map({
             container: 'siargaoMap',
             style: 'mapbox://styles/mapbox/satellite-streets-v12',
-            center: [126.12964150776305, 9.77125143535154], // Arriba Homestay coordinates
+            center: [126.12964150776305, 9.77125143535154], // HOMESTAY LOCATION
             zoom: 16,
-            pitch: 45, // 3D tilt
+            pitch: 45, // 3D VIEW ANGLE
             bearing: 0
         });
         
-        // Add 3D terrain
+        // ADD 3D TERRAIN WHEN MAP LOADS
         map.on('load', () => {
-            // Add terrain source
+            // TERRAIN DATA SOURCE
             map.addSource('mapbox-dem', {
                 'type': 'raster-dem',
                 'url': 'mapbox://mapbox.mapbox-terrain-dem-v1',
@@ -426,10 +426,10 @@
                 'maxzoom': 14
             });
             
-            // Set terrain
+            // APPLY TERRAIN WITH HEIGHT
             map.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.5 });
             
-            // Add sky layer for realistic atmosphere
+            // ADD SKY AND ATMOSPHERE
             map.addLayer({
                 'id': 'sky',
                 'type': 'sky',
@@ -440,7 +440,7 @@
                 }
             });
             
-            // Add 3D buildings
+            // ADD 3D BUILDINGS
             map.addLayer({
                 'id': '3d-buildings',
                 'source': 'composite',
@@ -473,7 +473,7 @@
             });
         });
         
-        // Create custom animated marker element
+        // CREATE ANIMATED MAP MARKER
         const markerElement = document.createElement('div');
         markerElement.className = 'custom-marker';
         markerElement.innerHTML = `
@@ -484,7 +484,7 @@
             </div>
         `;
         
-        // Add custom marker to map
+        // ADD MARKER TO MAP
         const marker = new mapboxgl.Marker({
             element: markerElement,
             anchor: 'bottom'
@@ -500,7 +500,7 @@
             `))
         .addTo(map);
         
-        // 3D Toggle functionality
+        // TOGGLE 3D VIEW BUTTON
         let is3D = true;
         document.getElementById('toggle3D').addEventListener('click', () => {
             is3D = !is3D;
@@ -513,7 +513,7 @@
             }
         });
         
-        // Reset view functionality
+        // RESET MAP VIEW BUTTON
         document.getElementById('resetView').addEventListener('click', () => {
             map.easeTo({
                 center: [126.12964150776305, 9.77125143535154],
@@ -524,14 +524,14 @@
             });
         });
         
-        // Add navigation controls
+        // MAP NAVIGATION CONTROLS
         map.addControl(new mapboxgl.NavigationControl(), 'top-right');
         
-        // Add fullscreen control
+        // FULLSCREEN MAP BUTTON
         map.addControl(new mapboxgl.FullscreenControl(), 'top-right');
     </script>
     
-    <!--Start of Tawk.to Script-->
+    <!-- TAWK.TO LIVE CHAT -->
     <script type="text/javascript">
     var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
     (function(){
@@ -543,6 +543,6 @@
     s0.parentNode.insertBefore(s1,s0);
     })();
     </script>
-    <!--End of Tawk.to Script-->
+    <!-- END TAWK.TO -->
 </body>
 </html>
